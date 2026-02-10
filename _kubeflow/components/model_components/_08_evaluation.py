@@ -4,7 +4,7 @@ from kfp.dsl import component, Input, InputPath, Dataset
 
 @component(
     base_image="python:3.11-slim",
-    packages_to_install=['pandas', 'mlflow', 'scikit-learn', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
+    packages_to_install=['pandas', 'git', 'mlflow', 'scikit-learn', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
 )
 def evaluation_component(
     test_data: Input[Dataset],

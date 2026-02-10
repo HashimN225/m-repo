@@ -18,13 +18,17 @@ def register_model_to_mlflow(
         experiment_name=experiment_name
     )
 
-    registered = registry.register_model(
-        run_id=mlflow_run_id,
-        artifact_name=artifact_name,
-        registry_name=registry_name
-    )
-
-    metrics = registry.get_metric_from_mlfow()
+    with registry.start_run(run_name='model-training-run', run_id=mlflow_run_id):
+        registered = registry.register_model(
+            run_id=mlflow_run_id,
+            artifact_name=artifact_name,
+            registry_name=registry_name
+        )
+        metrics = registry.get_metric_from_mlfow(run_id=mlflow_run_id)
+        print("✓ Model registered successfully!")
+        print(f"Name: {registered.name}")
+        print(f"Version: {registered.version}")
+        print("Stage: Staging")
 
     return registered, metrics
 
@@ -50,16 +54,18 @@ def promote_to_production(
         version=version,
         threshold=recall_threshold,
     )
+    print(f"✓ Model promoted to {stage}")
 
-    print(f"Model promoted to: {stage}")
     return stage
+
+
 
 
 if __name__ == "__main__":
     from pathlib import Path
 
     BASE_DIR = Path(__file__).resolve().parents[2]
-    ARTIFACTS_PATH = BASE_DIR / "artifacts" / "model_v1"
+    ARTIFACTS_PATH = BASE_DIR / "artifacts"
     MLFLOW_METADATA = ARTIFACTS_PATH / "mlflow_metadata.txt"
 
     with open(MLFLOW_METADATA, 'r') as f:

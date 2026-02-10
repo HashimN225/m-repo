@@ -96,9 +96,14 @@ def training_data(
     
     # Download files from MinIO
     # Note: Artifact URIs are folders, actual files are inside
-    print(f"Checking file path to download from loacl or minio....")
-    local_train = download_local_or_minio(train_path + "/06_preprocess_train_df.csv")
+    print(f"Checking file path to download from local or minio....")
+    print('original_train_path: ', train_path)
+    local_train = download_local_or_minio(train_path + "/train.csv") # local use "06_preprocess_train_df.csv"
+
+    print("original preprocess path: ", preprocessor_path)
     local_preprocessor = download_local_or_minio(preprocessor_path + "/preprocessor.pkl")
+
+    print("original best params: ", best_params_path)
     local_params = download_local_or_minio(best_params_path + "/tuning_metadata.json")
                                  
     # Load data
@@ -152,6 +157,7 @@ def training_data(
             X_train=X_train,
             parameters=best_params,
             artifact_name=artifact_name,
+            stage='training'
         )
 
         print("Model logged to MLflow!")
@@ -183,4 +189,4 @@ if __name__ == "__main__":
         artifact_name=os.environ.get("MLFLOW_MODEL_NAME", "model-name"),
     )
 
-# python -m src.model_pipeline._08_training --train_path "datasets/data-pipeline" --preprocessor_path "artifacts/model_v1" --best_params_path "artifacts/model_v1" --mlflow_run_id "3a21c2ac10d14a268e62c8054ba30719"
+# python -m src.model_pipeline._08_training --train_path "datasets/data-pipeline" --preprocessor_path "artifacts" --best_params_path "artifacts" --mlflow_run_id "53f3eb2d18904750af468dead7ab1447"

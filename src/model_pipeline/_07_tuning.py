@@ -81,7 +81,7 @@ def tuning_data(train_path: str, test_path: str, preprocess_path: str, tracking_
             **metrics,
         }
 
-        registry.log_params_mlflow(overall_parameters)
+        registry.log_params_mlflow(params=overall_parameters, stage="tuning")
         
         print("Logged tuning values in MLflow!")
         

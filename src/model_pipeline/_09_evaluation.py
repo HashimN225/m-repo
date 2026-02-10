@@ -37,7 +37,7 @@ def evaluate_data(test_path: str, tracking_uri: str, experiment_name: str, artif
 
         print('metrics: ', metrics)
 
-        registry.log_metrics_mlflow(metrics)
+        registry.log_metrics_mlflow(metrics=metrics, stage='evaluation')
 
 
     conf_matrix = confusion_matrix(y_test, y_pred)
@@ -56,14 +56,14 @@ def evaluate_data(test_path: str, tracking_uri: str, experiment_name: str, artif
         'Coefficient': coef,
         'Abs_Coefficient': np.abs(coef)
     }).sort_values(by='Abs_Coefficient', ascending=False)
-    # print(coef_df)
+    print(coef_df)
 
-    plt.figure(figsize=(10,6))
-    plt.barh(coef_df['Feature'], coef_df['Coefficient'])
-    plt.gca().invert_yaxis()
-    plt.xlabel("Coefficient")
-    plt.title("Logistic Regression Feature Importance")
-    plt.show()
+    # plt.figure(figsize=(10,6))
+    # plt.barh(coef_df['Feature'], coef_df['Coefficient'])
+    # plt.gca().invert_yaxis()
+    # plt.xlabel("Coefficient")
+    # plt.title("Logistic Regression Feature Importance")
+    # plt.show()
 
     return metrics
 
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     DATASET_PATH = BASE_DIR / "datasets" / "data-pipeline"
     TEST_PATH = DATASET_PATH / "06_preprocess_test_df.csv"
 
-    ARTIFACTS_PATH = BASE_DIR / "artifacts" / "model_v1"
+    ARTIFACTS_PATH = BASE_DIR / "artifacts"
     MLFLOW_METADATA = ARTIFACTS_PATH / "mlflow_metadata.txt"
 
     with open(MLFLOW_METADATA, 'r') as f:

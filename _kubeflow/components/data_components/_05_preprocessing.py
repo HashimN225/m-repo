@@ -2,8 +2,9 @@ from kfp import dsl
 from kfp.dsl import component, Input, Output, Dataset, Model
 
 @component(
-    base_image="python:3.10",
-    packages_to_install=['pandas', 'scikit-learn', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
+    base_image="sandy345/kubeflow-employee-attrition:latest"
+    # base_image="python:3.10",
+    # packages_to_install=['pandas', 'scikit-learn', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
 )
 def preprocessed_component(
     input_data: Input[Dataset],

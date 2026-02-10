@@ -12,7 +12,7 @@ def validation_component(
 ):
     import os
     # import boto3
-    from data_pipeline._02_validation import validate_data
+    from src.data_pipeline._02_validation import validate_data
 
     input_path = os.path.join(input_data.path, "ingestion.csv")
 

@@ -2,7 +2,7 @@
 from kfp.dsl import component, Input, Output, Dataset
 
 @component(
-    base_image="python:3.11-slim",
+    base_image="python:3.12",
     packages_to_install=['pandas', 'git', 'pandera', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
 )
 def validation_component(

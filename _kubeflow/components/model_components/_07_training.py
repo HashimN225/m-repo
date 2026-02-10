@@ -5,7 +5,7 @@ from kubernetes.client import V1EnvVar, V1EnvVarSource, V1SecretKeySelector
 
 
 @dsl.component(
-    base_image="python:3.11-slim",
+    base_image="python:3.12",
     packages_to_install=["kubernetes", 'git', 'scikit-learn', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
 )
 def trainer_model_component(

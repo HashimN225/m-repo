@@ -2,7 +2,7 @@ from kfp.dsl import component, Output, Dataset
 
 @component(
     # base_image="sandy345/kubeflow-employee-attrition:latest"
-    base_image="python:3.11-slim",
+    base_image="python:3.12",
     packages_to_install=['pandas', 'git', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
 )
 def ingestion_component(

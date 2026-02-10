@@ -1,8 +1,8 @@
 from kfp.dsl import component
 
 @component(
-    base_image="sandy345/kubeflow-employee-attrition:latest",
-    packages_to_install=['kubernetes']
+    base_image="python:3.12",
+    packages_to_install=['kubernetes', 'git', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
 )
 def wait_for_training(job_name: str, namespace: str):
     from kubernetes import client, config

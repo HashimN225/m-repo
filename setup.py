@@ -5,5 +5,9 @@ setup(
     version="0.1.0",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
+    include_package_data=True,
+    package_data={
+        "": ["dataset/*.csv"],
+    },
     install_requires=["pandas", "mlflow", "boto3"],
 )

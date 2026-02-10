@@ -11,15 +11,8 @@ INGESTION_PATH = DATASET_PATH / "data-pipeline" / "01_ingestion.csv"
 os.makedirs(INGESTION_PATH.parent, exist_ok=True)
 
 def ingestion() -> pd.DataFrame:
-    s3 = boto3.client('s3')
-
-    bucket = "ml-basics"
-    key = "employee-attrition/raw_dataset.csv"
-
-    response = s3.get_object(Bucket=bucket, Key=key)
-    raw_df = BytesIO(response['Body'].read())
- 
-    df = pd.read_csv(raw_df)
+    
+    df = pd.read_csv(RAW_DATA_PATH)
     print(df.head(5))
     print("------")
 

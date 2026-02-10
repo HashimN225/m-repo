@@ -26,7 +26,7 @@ from _kubeflow.components.util.wait_job import wait_for_training
 def full_pipeline(
     namespace: str = "kubeflow",
     # trainer_image: str = "sandy345/kubeflow-employee-attrition:latest",
-    trainer_image: str = "python:3.12",
+    trainer_image: str = "python:3.10",
     cpu: str = "200m",
     memory: str = "512Mi",
     tracking_uri: str = "http://mlflow.mlflow.svc.cluster.local:80",

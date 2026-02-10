@@ -3,7 +3,7 @@ from kfp.dsl import component, Input, Output, Dataset
 
 @component(
     base_image="python:3.10",
-    packages_to_install=['pandas', 'git', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
+    packages_to_install=['pandas', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
 )
 def feature_engg_component(
     input_data: Input[Dataset], 

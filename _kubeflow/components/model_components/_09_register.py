@@ -1,7 +1,8 @@
 from kfp.dsl import component, InputPath
 
 @component(
-    base_image="sandy345/kubeflow-employee-attrition",
+    base_image="python:3.11-slim",
+    packages_to_install=['pandas', 'mlflow', 'scikit-learn', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
 )
 def register_model_component(
     registry_name: str, 

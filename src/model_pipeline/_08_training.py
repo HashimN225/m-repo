@@ -17,17 +17,17 @@ def download_local_or_minio(file_path: str):
     # Handle minio:// URL format
     if file_path.startswith("minio://"):
         file_path = file_path[8:]  # Remove 'minio://' prefix
-        download_from_minio(file_path)
+        result_path = download_from_minio(file_path)
 
     # Handle /minio/ path format
     elif file_path.startswith("/minio/"):
         file_path = file_path[7:]  # Remove '/minio/' prefix
-        download_from_minio(file_path)
+        result_path = download_from_minio(file_path)
 
     else:
-        file_path = download_local_file(file_path)
-    
-    return file_path
+        result_path = download_local_file(file_path)
+        
+    return result_path
 
 
 def download_local_file(file_path: str):
@@ -97,10 +97,10 @@ def training_data(
     # Download files from MinIO
     # Note: Artifact URIs are folders, actual files are inside
     print(f"Checking file path to download from loacl or minio....")
-    local_train = download_local_or_minio(os.path.join(train_path, "train.csv"))
-    local_preprocessor = download_local_or_minio(os.path.join(preprocessor_path, "preprocessor.pkl"))
-    local_params = download_local_or_minio(os.path.join(best_params_path, "tuning_metadata.json"))
-                                                                   
+    local_train = download_local_or_minio(train_path + "/06_preprocess_train_df.csv")
+    local_preprocessor = download_local_or_minio(preprocessor_path + "/preprocessor.pkl")
+    local_params = download_local_or_minio(best_params_path + "/tuning_metadata.json")
+                                 
     # Load data
     print("\nLoading training data...")
     df = pd.read_csv(local_train)
@@ -183,4 +183,4 @@ if __name__ == "__main__":
         artifact_name=os.environ.get("MLFLOW_MODEL_NAME", "model-name"),
     )
 
-# python -m src.model_pipeline._08_training --train_path "datasets/data-pipeline" --preprocessor_path "artifacts/model_v1" --best_params_path "artifacts/model_v1" --mlflow_run_id "..."
+# python -m src.model_pipeline._08_training --train_path "datasets/data-pipeline" --preprocessor_path "artifacts/model_v1" --best_params_path "artifacts/model_v1" --mlflow_run_id "3a21c2ac10d14a268e62c8054ba30719"

@@ -56,7 +56,7 @@ if __name__ == "__main__":
     TRAIN_PATH = DATASET_PATH / "06_preprocess_train_df.csv"
     TEST_PATH = DATASET_PATH / "06_preprocess_test_df.csv"
 
-    ARTIFACTS_PATH = BASE_DIR / "artifacts" / "model_v1"
+    ARTIFACTS_PATH = BASE_DIR / "artifacts"
     os.makedirs(ARTIFACTS_PATH, exist_ok=True)
     
     PREPROCESSOR_PATH = ARTIFACTS_PATH / "preprocessor.pkl"

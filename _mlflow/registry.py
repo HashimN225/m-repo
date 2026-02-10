@@ -38,7 +38,6 @@ class MLflowRegistry:
             sk_model=model,
             name=artifact_name,
             signature=signature,
-            input_example=X_train.iloc[:5],
         )
 
         mlflow_metadata = {
@@ -49,12 +48,23 @@ class MLflowRegistry:
         
         features = list(X_train.columns)
         features = {"raw_features": features}
-        mlflow.log_dict(features, "features_schema.json")
         mlflow.log_param("num_features", len(features['raw_features']))
         mlflow.log_param("feature_list", features)
 
         mlflow.set_tag("artifact_name", artifact_name)
         mlflow.log_dict(mlflow_metadata, "mlflow_metadata.json")
+
+        # to check model is logged?
+        run = mlflow.active_run()
+        client = mlflow.tracking.MlflowClient()
+        artifacts = client.list_artifacts(run.info.run_id, artifact_name)
+
+        print(f"Artifacts in '{artifact_name}':")
+        for artifact in artifacts:
+            print(f"  ✓ {artifact.path}")
+        
+        if not artifacts:
+            raise ValueError(f"No artifacts found in {artifact_name}!")
 
         return True
     
@@ -63,14 +73,9 @@ class MLflowRegistry:
         mlflow.log_metrics(metrics)
         return True
     
-
-    def log_dict_mlflow(self, dict_values, artifact_file):
-        mlflow.log_dict(
-            dict_values,
-            artifact_file=artifact_file
-        )
-        return True
-
+    def log_params_mlflow(self, params):
+        mlflow.log_params(params)
+    
 
     def load_model(self, run_id: str, artifact_name: str):
         model_uri = f"runs:/{run_id}/{artifact_name}"

@@ -2,7 +2,8 @@ from kfp import dsl
 from kfp.dsl import Input, Output, OutputPath, Model, Dataset
 
 @dsl.component(
-    base_image="sandy345/kubeflow-employee-attrition",
+    base_image="python:3.11-slim",
+    packages_to_install=['pandas', 'mlflow', 'scikit-learn', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
 )
 def tuning_component(
     train_data: Input[Dataset],

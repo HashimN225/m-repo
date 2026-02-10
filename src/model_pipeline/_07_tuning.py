@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def tuning_data(train_path: str, test_path: str, preprocessor_path: str, tracking_uri: str, experiment_name: str) -> dict:
+def tuning_data(train_path: str, test_path: str, preprocess_path: str, tracking_uri: str, experiment_name: str) -> dict:
     df_train = pd.read_csv(train_path)
     df_test = pd.read_csv(test_path)
 
@@ -22,7 +22,7 @@ def tuning_data(train_path: str, test_path: str, preprocessor_path: str, trackin
     y_test = df_test['Attrition']
 
     # load preprocessor
-    preprocessor = joblib.load(preprocessor_path)
+    preprocessor = joblib.load(preprocess_path)
 
     pipeline = Pipeline([
         ("preprocessor", preprocessor),
@@ -50,7 +50,7 @@ def tuning_data(train_path: str, test_path: str, preprocessor_path: str, trackin
     )
     grid.fit(X_train, y_train)
 
-    # get best model and save in models/
+    # get best model
     tuned_model = grid.best_estimator_
 
     best_parameters = grid.best_params_
@@ -60,10 +60,10 @@ def tuning_data(train_path: str, test_path: str, preprocessor_path: str, trackin
 
     # tuned model evaluation
     metrics = {
-        "accuracy": accuracy_score(y_test, y_pred),
-        "recall": recall_score(y_test, y_pred),
-        "train_score": tuned_model.score(X_train, y_train),
-        "test_score": tuned_model.score(X_test, y_test)
+        "tuned_accuracy": accuracy_score(y_test, y_pred),
+        "tuned_recall": recall_score(y_test, y_pred),
+        "tuned_train_score": tuned_model.score(X_train, y_train),
+        "tuned_test_score": tuned_model.score(X_test, y_test)
     }        
 
     # log in mlflow
@@ -74,17 +74,15 @@ def tuning_data(train_path: str, test_path: str, preprocessor_path: str, trackin
 
     with registry.start_run(run_name="model-training-run"):
         mlflow_run_id = registry.get_run_id()
+        print('run_id: ', mlflow_run_id)
 
         overall_parameters = {
             **best_parameters,
             **metrics,
         }
 
-        registry.log_dict_mlflow(
-            grid.cv_results_,
-            artifact_file="grid_search_results.json"
-        )
-
+        registry.log_params_mlflow(overall_parameters)
+        
         print("Logged tuning values in MLflow!")
         
 
@@ -101,7 +99,7 @@ if __name__ == "__main__":
     TRAIN_PATH =  DATASET_PATH / "06_preprocess_train_df.csv"
     TEST_PATH = DATASET_PATH / "06_preprocess_test_df.csv"
 
-    ARTIFACTS_PATH = BASE_DIR / "artifacts" / "model_v1"
+    ARTIFACTS_PATH = BASE_DIR / "artifacts"
     PREPROCESSOR_PATH = ARTIFACTS_PATH / "preprocessor.pkl"
     TUNING_METADATA = ARTIFACTS_PATH / "tuning_metadata.json"
     MLFLOW_METADATA = ARTIFACTS_PATH / "mlflow_metadata.txt"  

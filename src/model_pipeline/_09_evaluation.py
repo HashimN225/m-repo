@@ -15,7 +15,7 @@ def evaluate_data(test_path: str, tracking_uri: str, experiment_name: str, artif
         experiment_name=experiment_name
     )
 
-    with registry.start_run(run_id=run_id):
+    with registry.start_run(run_name='model-training-run', run_id=mlflow_run_id):
         # load model form MLflow
         model = registry.load_model(run_id=mlflow_run_id, artifact_name=artifact_name)
 

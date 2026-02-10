@@ -3,7 +3,8 @@ from kfp.dsl import component, Input, Output, Dataset
 
 
 @component(
-    base_image="sandy345/kubeflow-employee-attrition", 
+    base_image="python:3.11-slim",
+    packages_to_install=['pandas', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
 )
 def cleaned_component(
     input_data: Input[Dataset], 

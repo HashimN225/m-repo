@@ -3,7 +3,8 @@ from kfp.dsl import component, Input, InputPath, Dataset
 
 
 @component(
-    base_image="sandy345/kubeflow-employee-attrition", 
+    base_image="python:3.11-slim",
+    packages_to_install=['pandas', 'mlflow', 'scikit-learn', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
 )
 def evaluation_component(
     test_data: Input[Dataset],
@@ -16,9 +17,6 @@ def evaluation_component(
     from src.model_pipeline._09_evaluation import evaluate_data
 
     test_path = os.path.join(test_data.path, "test.csv")
-
-    with open(mlflow_metadata, 'r') as f:
-        mlflow_run_id = f.read().strip()
 
     metrics = evaluate_data(
         test_path=test_path, 

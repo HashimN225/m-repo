@@ -12,7 +12,7 @@ def cleaned_component(
 ):
     import os
     # import boto3
-    from src.data_pipeline._04_cleaning import clean_data
+    from data_pipeline._04_cleaning import clean_data
 
     input_path = os.path.join(input_data.path, "validation.csv")
 

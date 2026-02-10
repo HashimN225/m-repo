@@ -7,7 +7,7 @@ setup(
     package_dir={"": "src"},
     include_package_data=True,
     package_data={
-        "": ["dataset/*.csv"],
+        "": ["datasets/*.csv"],
     },
     install_requires=["pandas", "mlflow", "boto3"],
 )

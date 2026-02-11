@@ -10,11 +10,11 @@ flask-cors
 python-dotenv
 
 kfp
+kfp-kubernetes
 kubernetes
 kubeflow-training
 
 mlflow
 boto3
-git
 
 # kserve

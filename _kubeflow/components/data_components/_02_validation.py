@@ -2,7 +2,7 @@
 from kfp.dsl import component, Input, Output, Dataset
 
 @component(
-    base_image="sandy345/kubeflow-employee-attrition:latest"
+    base_image="sandy345/kubeflow-employee-attrition:v2"
     # base_image="python:3.10",
     # packages_to_install=['pandas', 'pandera', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
 )

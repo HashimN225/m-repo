@@ -1,7 +1,7 @@
 from kfp.dsl import component, InputPath
 
 @component(
-    base_image="sandy345/kubeflow-employee-attrition:latest"
+    base_image="sandy345/kubeflow-employee-attrition:v2"
     # base_image="python:3.10",
     # packages_to_install=['pandas', 'mlflow', 'scikit-learn', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
 )
@@ -28,6 +28,8 @@ def register_model_component(
         metric=metrics['recall'],
         model_name=registered_model.name,
         version=registered_model.version,
+        tracking_uri=tracking_uri,
+        experiment_name=experiment_name,
         recall_threshold=recall_threshold,
     )
 

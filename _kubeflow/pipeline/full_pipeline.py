@@ -1,4 +1,4 @@
-from kfp import dsl
+from kfp import dsl, kubernetes
 from kfp.compiler import Compiler
 import uuid
 
@@ -25,7 +25,7 @@ from _kubeflow.components.util.wait_job import wait_for_training
 )
 def full_pipeline(
     namespace: str = "kubeflow",
-    trainer_image: str = "sandy345/kubeflow-employee-attrition:latest",
+    trainer_image: str = "sandy345/kubeflow-employee-attrition:v2",
     # trainer_image: str = "python:3.10",
     cpu: str = "200m",
     memory: str = "512Mi",
@@ -33,7 +33,7 @@ def full_pipeline(
     experiment_name: str = "employee-attrition-v3",
     artifact_name: str = "employee-attrition-model",
     registry_name: str = "register-employee-attrition-model",
-    recall_threshold: float = 0.70,
+    recall_threshold: float = 0.65,
 ):
     # data pipeline
     # -----------------------------------------------------
@@ -109,6 +109,7 @@ def full_pipeline(
         artifact_name=artifact_name,
         mlflow_metadata=tuning.outputs["mlflow_metadata"]
     ).after(eval)
+    kubernetes.set_image_pull_policy(reg, "Always")
 
 
 # Compile pipeline 

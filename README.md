@@ -1,8 +1,9 @@
-# Employee Attrition Prediction Model
+# Enterprise MLOps with Kubeflow + MLflow
 
 <div align="center">
-  <img src="https://img.shields.io/badge/MLOps-Hub-blue?style=for-the-badge" alt="MLOps Hub" />
-  <img src="https://img.shields.io/badge/python-3.12.x-blue?style=for-the-badge" alt="Python Version" />
+  <img src="https://img.shields.io/badge/Kubeflow-Orchestration-blue?style=for-the-badge" alt="Kubeflow" />
+  <img src="https://img.shields.io/badge/MLflow-Tracking-green?style=for-the-badge" alt="MLflow" />
+  <img src="https://img.shields.io/badge/python-3.11.x-blue?style=for-the-badge" alt="Python Version" />
   <img src="https://img.shields.io/badge/status-Active-green?style=for-the-badge" alt="Status" />
 </div>
 
@@ -12,33 +13,104 @@
 ## Table of Contents
 
 - [Overview](#overview)
+- [Architecture](#architecture)
+- [Kubeflow + MLflow Integration](#kubeflow--mlflow-integration)
 - [Datasets](#datasets)
 - [Features](#features)
 - [Project Structure](#project-structure)
+- [Tech Stack](#tech-stack)
 - [Setup & Installation](#setup--installation)
-    - [Create Virtual Environment](#step-1-create-virtual-environment)
-    - [Install Dependencies](#step-2-install-dependencies)
-    - [Training the Model](#step-3-training-the-model)
-    - [Testing/Prediction](#step-4-testingprediction)
+  - [Prerequisites](#prerequisites)
+  - [Environment Setup](#environment-setup)
+  - [Kubeflow Configuration](#kubeflow-configuration)
+  - [Running Kubeflow Pipelines](#running-kubeflow-pipelines)
 - [ML Pipeline](#ml-pipeline)
+- [MLflow Model Registry](#mlflow-model-registry)
+- [Model Serving](#model-serving)
 - [Frontend](#frontend)
 - [Contribution](#contribution)
 
 
 ## Overview
 
-This project is an **Employee Attrition Prediction System** built using machine learning. It predicts whether an employee will leave (attrition) or stay at a company based on various employee and workplace factors. The model uses classification algorithms to identify at-risk employees, helping organizations implement targeted retention strategies.
+This project is an **Enterprise-Grade Employee Attrition Prediction System** orchestrated with **Kubeflow** for workflow automation and **MLflow** for experiment tracking and model management. It predicts whether an employee will leave (attrition) or stay at a company based on various employee and workplace factors.
+
+The system leverages Kubernetes-native orchestration (Kubeflow) to manage complex ML workflows with containerized components, while MLflow provides centralized experiment tracking, model versioning, and a model registry for production deployment.
 
 **Business Value:**
-- Identify employees likely to leave the organization
-- Enable proactive retention interventions
-- Reduce turnover costs and improve workforce planning
-- Support HR decision-making with data-driven insights
+- Identify employees likely to leave the organization using automated ML pipelines.
+- Reduce turnover costs through intelligent workforce planning.
+- Support HR decision-making with data-driven insights from tracked experiments.
+- Ensure model governance with MLflow's centralized model registry.
+- Scale ML workloads efficiently with Kubernetes orchestration.
+
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Kubeflow Pipelines                      │
+│  (Orchestration & Workflow Management on Kubernetes)        │
+└──────────────────────┬──────────────────────────────────────┘
+                       │
+        ┌──────────────┴──────────────┐
+        │                             │
+┌───────▼──────────────┐    ┌────────▼──────────────┐
+│  Data Components     │    │  Model Components     │
+│ - Ingestion          │    │ - Tuning              │
+│ - Validation         │    │ - Training            │
+│ - Cleaning           │    │ - Evaluation          │
+│ - Feature Eng.       │    │ - Registration        │
+│ - Preprocessing      │    │                       │
+└───────────────────────┘    └──────────────────────┘
+        │                             │
+        └──────────────┬──────────────┘
+                       │
+┌──────────────────────▼──────────────────────────────────────┐
+│                    MLflow Integration                       │
+│  (Experiment Tracking, Model Registry & Management)         │
+├──────────────────────────────────────────────────────────────┤
+│ • Track metrics, parameters & artifacts                      │
+│ • Log model artifacts & metadata                             │
+│ • Model versioning & staging                                 │
+│ • Production model registry                                  │
+└──────────────────────┬──────────────────────────────────────┘
+                       │
+        ┌──────────────┴──────────────┐
+        │                             │
+┌───────▼──────────────┐    ┌────────▼──────────────┐
+│ KServe Inference     │    │ Flask Frontend        │
+│ (Model Serving)      │    │ (Web UI)              │
+└──────────────────────┘    └───────────────────────┘
+```
+
+
+## Kubeflow + MLflow Integration
+
+### Why Kubeflow + MLflow?
+
+**Kubeflow** provides:
+- Kubernetes-native pipeline orchestration
+- Containerized, reproducible component execution
+- Automatic workflow scheduling and monitoring
+- Scalable distributed training support
+
+**MLflow** provides:
+- Centralized experiment tracking and metrics visualization
+- Model versioning and artifact management
+- Production model registry for governance
+- Model serving and API deployment
+
+**Together they create:**
+- A complete MLOps platform with separated concerns
+- Reproducible pipelines with full observability
+- Compliance-ready model governance
+- Seamless transition from experimentation to production
 
 
 ## Datasets
 
-The main dataset used is [employee_attrition.csv](./datasets/employee_attrition.csv), containing 74,500 employee records with both training and test data.
+The main dataset [employee_attrition.csv](./datasets/employee_attrition.csv) contains 74,500 employee records used across the Kubeflow pipeline. Data flows through each Kubeflow component, with processed artifacts stored at each stage in [datasets/data-pipeline/](./datasets).
 
 **Dataset Features:**
 
@@ -84,81 +156,212 @@ The main dataset used is [employee_attrition.csv](./datasets/employee_attrition.
 ## Project Structure
 
 ```
-employee-attrition-model/
+employee-attrition-kubeflow/
+├── _kubeflow/                          # Kubeflow Pipeline & Components
+│   ├── pipeline/
+│   │   ├── full_pipeline.py            # Complete ML pipeline definition
+│   │   └── submit_pipeline.py          # Submit pipeline to Kubeflow
+│   └── components/
+│       ├── data_components/            # Data processing components
+│       │   ├── _01_ingestion.py        # Data loading & exploration
+│       │   ├── _02_validation.py       # Data validation with Pandera
+│       │   ├── _03_cleaning.py         # Data cleaning & preprocessing
+│       │   ├── _04_feature_engg.py     # Feature engineering
+│       │   └── _05_preprocessing.py    # Scaling, normalization, splits
+│       ├── model_components/           # Model training components
+│       │   ├── _06_tuning.py           # Hyperparameter tuning (logged to MLflow)
+│       │   ├── _07_training.py         # Model training (metrics tracked)
+│       │   ├── _08_evaluation.py       # Model evaluation (logged to MLflow)
+│       │   └── _09_register.py         # Register model in MLflow registry
+│       └── util/
+│           └── wait_job.py             # Utility for pipeline job wait
+│
+├── _mlflow/                            # MLflow Integration
+│   └── registry.py                     # MLflow model registry operations
+│
+├── src/                                # Standalone Python modules (local execution)
+│   ├── data_pipeline/
+│   │   ├── _01_ingestion.py
+│   │   ├── _02_validation.py
+│   │   ├── _03_eda.py
+│   │   ├── _04_cleaning.py
+│   │   ├── _05_feature_engg.py
+│   │   ├── _06_preprocessing.py
+│   │   └── upload_dataset.py
+│   └── model_pipeline/
+│       ├── _07_tuning.py
+│       ├── _08_training.py
+│       ├── _09_evaluation.py
+│       └── _10_registry.py
+│
+├── src_s3/                             # S3-backed data pipeline
 ├── datasets/
 │   ├── employee_attrition.csv          # Main dataset (74,500 records)
-│   └── data-engg/                      # Processed datasets at each pipeline stage
+│   └── data-pipeline/                  # Intermediate processed datasets
 │       ├── 01_ingestion.csv
-│       ├── 02_validation.csv
-│       ├── 03_eda_df.csv
-│       ├── 04_cleaned_df.csv
-│       ├── 05_feature_engg_df.csv
-│       └── 06_preprocess_train/test_df.csv
-├── artifacts/                          # Trained models and artifacts
-│   ├── model_v1/
-│   └── model_v2/
-├── src/
-│   ├── data-pipeline/                  # Data engineering pipeline
-│   │   ├── _01_ingestion.py            # Data loading and exploration
-│   │   ├── _02_validation.py           # Data validation with Pandera
-│   │   ├── _03_eda.py                  # Exploratory data analysis
-│   │   ├── _04_cleaning.py             # Data cleaning
-│   │   ├── _05_feature_engg.py         # Feature engineering
-│   │   └── _06_preprocessing.py        # Preprocessing & scaling
-│   └── model-pipeline/                 # Model development pipeline
-│       ├── _07_training.py             # Model training
-│       ├── _08_evaluation.py           # Model evaluation
-│       ├── _09_cross_validation.py     # Cross-validation
-│       ├── _10_tuning.py               # Hyperparameter tuning
-├── frontend/
-│   ├── app.py                          # Flask web application
+│       ├── ....
+├── artifacts/                          # Trained models & MLflow metadata
+├── frontend/                           # Flask Web UI
+│   ├── app.py
 │   ├── static/
-│   │   ├── css/style.css
-│   │   └── js/script.js
 │   └── templates/
-│       └── index.html
+│
 ├── notebook/
-│   └── test.ipynb                      # Jupyter notebook for experimentation
-├── requirements.txt
+├── requirements.txt                    # Python dependencies
+├── setup.py                            # Package setup
+├── test.py                             # Test suite
+├── Dockerfile                          # Container image for components
 └── README.md
 ```
 
-
 ## Tech Stack
 
-- **Python Version**: 3.12+
-- **Machine Learning**: scikit-learn
-- **Data Processing**: pandas, numpy
-- **Data Validation**: pandera
-- **Visualization**: matplotlib, seaborn
-- **Web Framework**: Flask, Flask-CORS
-- **Model Format**: Pickle (.pkl)
+**Core MLOps:**
+- **Kubeflow Pipelines**: Kubernetes-native ML workflow orchestration
+- **Kubeflow Trainer Operator**: Kubernetes-native ML training system
+- **MLflow**: Experiment tracking, model versioning, and registry
+- **KServe**: Model serving and inference (KServe deployment)
+
+**ML & Data:**
+- **Python Version**: 3.11+
+- **scikit-learn**: Classification & hyperparameter tuning
+- **pandas**: Data manipulation & processing
+- **numpy**: Numerical computations
+- **pandera**: Data schema validation
+- **matplotlib, seaborn**: Data visualization
+
+**Infrastructure:**
+- **Kubernetes**: Container orchestration platform for Kubeflow
+- **Docker**: Containerization for pipeline components
+- **Flask, Flask-CORS**: Web framework for UI
+
+**Data Serialization:**
+- **Pickle (.pkl)**: Model artifact storage
+- **JSON**: Configuration & metadata
+
+**Development:**
+- **Jupyter**: Notebook-based experimentation
 
 
-## ML Model Pipeline
+## ML Pipeline
 
-### 1. Data Engineering Pipeline
-- **Ingestion**: Load raw data from CSV
-- **Validation**: Schema validation using Pandera
-- **EDA**: Exploratory Data Analysis - understand data patterns
-- **Cleaning**: Handle missing values, outliers, inconsistencies
-- **Feature Engineering**: Create new features, encoding categorical variables
-- **Preprocessing**: Scaling, normalization, train-test split
+### Kubeflow Pipeline Components
 
-### 2. Model Development Pipeline
-- **Training**: Train classification models (Logistic Regression, Random Forest, etc.)
-- **Evaluation**: Accuracy, precision, recall, F1-score, confusion matrix
-- **Cross-Validation**: K-fold validation for robust assessment
-- **Hyperparameter Tuning**: GridSearch/RandomSearch for optimal parameters
+The end-to-end ML workflow is orchestrated through Kubeflow as containerized, reusable components:
 
-### 3. Frontend
-- Flask-based web application for model inference
-- Real-time predictions on new employee data
+#### **Data Engineering Pipeline** (_kubeflow/components/data_components/)
+
+1. **01_ingestion.py** - Load raw employee data from CSV/S3
+   - Input: Raw dataset
+   - Output: `minio://<ingestion.csv>`
+
+2. **02_validation.py** - Validate data schema using Pandera
+   - Input: `minio://<ingestion.csv>`
+   - Output: `minio://<validation.csv>`
+   - Validates: Data types, null values, ranges
+
+3. **03_cleaning.py** - Handle missing values, outliers, inconsistencies
+   - Input: `minio://<validation.csv>`
+   - Output: `minio://<cleaned.csv>`
+   - Techniques: Imputation, outlier detection, deduplication
+
+4. **04_feature_engg.py** - Feature engineering & transformation
+   - Input: `minio://<cleaned.csv>`
+   - Output: `minio://<feature_engg.csv>`
+   - Creates: New features, categorical encodings, interactions
+
+5. **05_preprocessing.py** - Scaling, normalization, train-test split
+   - Input: `minio://<feature_engg.csv>`
+   - Output: `minio://<train.csv>`, `minio://<test.csv>`, `minio://<preprocessor.pkl>`
+   - Applies: ColumnTransformer, test-train split (80-20)
+
+#### **Model Development Pipeline** (_kubeflow/components/model_components/)
+
+6. **06_tuning.py** - Hyperparameter optimization
+   - Input: Training data from preprocessing
+   - Output: Best hyperparameters, tuning report
+   - **Logged to MLflow**: Parameters, search space, CV scores
+   - Methods: GridSearchCV, RandomSearchCV
+
+7. **07_training.py** - Train classification models
+   - Input: Preprocessed training data + tuned parameters
+   - Output: Trained model artifacts
+   - **Logged to MLflow**: 
+     - Model artifacts (pickle)
+     - Training metrics (accuracy, loss)
+     - Model parameters
+   - Models: Logistic Regression
+
+8. **08_evaluation.py** - Evaluate on test set
+   - Input: Trained model + test data
+   - Output: Evaluation report
+   - **Logged to MLflow**:
+     - Evaluation metrics (Accuracy, Precision, Recall, F1, AUC-ROC)
+     - Confusion matrix
+     - Feature importance
+     - Cross-validation scores
+
+9. **09_register.py** - Register best model in MLflow Registry
+   - Input: Model artifacts + evaluation metrics
+   - Output: Registered model with version & stage
+   - **MLflow Operations**:
+     - Register model in central registry
+     - Set model stage (Staging/Production)
+
+### MLflow Integration
+
+**Experiment Tracking:**
+- All training runs, metrics, and parameters are logged to MLflow
+- Accessible via MLflow UI for comparison and analysis
+
+**Model Registry:**
+- Models automatically registered after evaluation
+- Version control with metadata
+- Stage management (Staging → Production)
+- Artifact storage with full lineage
+
+**Artifact Management:**
+- Model pickles, preprocessors, and metadata stored
+- Reproducible model loading for serving
+
+
+### Accessing MLflow UI
+
+For local setup:
+```bash
+mlflow ui --backend-store-uri sqlite:///mlflow.db
+```
+
+**Note**: Skip this step if MLflow is configured in your own cloud.
+
+Navigate to `http://localhost:5000` to:
+- View all experiment runs
+- Compare model metrics and parameters
+- Download model artifacts
+- Track lineage and metadata
 
 
 ## Setup & Installation
 
-#### Step 1: Create Virtual Environment
+### Prerequisites
+
+- **Kubernetes Cluster**: Running 1.16+ (Minikube, EKS, GKE, or similar)
+- **Kubeflow**: 1.6+ installed on cluster
+- **MLflow**: Accessible from cluster (local or remote server)
+- **Docker**: For building component images
+- **Python**: 3.11+
+- **kubectl**: Configured to access your cluster
+
+### Environment Setup
+
+#### Step 1: Clone & Navigate Repository
+
+```bash
+git clone https://github.com/mlops-hub/kubeflow-training-pipeline.git
+cd kubeflow-training-pipeline
+```
+
+#### Step 2: Create Virtual Environment
 
 **Windows:**
 ```bash
@@ -172,99 +375,205 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-#### Step 2: Install Dependencies
+#### Step 3: Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-#### Step 3: Run Data Pipeline
+### Kubeflow Configuration
 
-Execute each data engineering step sequentially:
+#### Step 4: Configure Kubeflow Access
+
+Set up kubeconfig to access your Kubeflow cluster:
 
 ```bash
-cd src/data-pipeline
+# For local Minikube
+kubectl config use-context minikube
+
+# Or for cloud providers, update kubeconfig accordingly
+```
+
+#### Step 5: Configure MLflow
+
+Set MLflow tracking server URI (environment variable or in code):
+
+```bash
+# Option 1: Environment variable
+export MLFLOW_TRACKING_URI=http://localhost:5000
+# or remote server:
+# export MLFLOW_TRACKING_URI=https://mlflow.yourcompany.com
+
+# Option 2: Update in pipeline configuration
+# Edit _kubeflow/pipeline/full_pipeline.py and set MLflow URI
+```
+
+#### Step 6: Build Docker Images for Components
+
+Components need to be containerized for Kubeflow execution:
+
+```bash
+# Build image with all dependencies
+docker build -t <registry>/employee-attrition:latest .
+
+# Push to your container registry
+docker push <registry>/employee-attrition:latest
+```
+
+Update image references in `_kubeflow/pipeline/full_pipeline.py`:
+
+```python
+CONTAINER_IMAGE = "<registry>/employee-attrition:latest"
+```
+
+### Running Kubeflow Pipelines
+
+#### Option A: Run the Full ML Pipeline with Kubeflow
+
+```bash
+# Navigate to pipeline directory
+cd _kubeflow/pipeline
+
+# Submit pipeline to Kubeflow
+python submit_pipeline.py
+```
+
+This will:
+1. Load the pipeline definition from `full_pipeline.py`
+2. Submit it to Kubeflow using the Kubeflow Pipelines SDK
+3. Orchestrate all 9 components in sequence
+4. Log all metrics/artifacts to MLflow
+5. Register the best model in MLflow registry
+
+**Monitor Pipeline Execution:**
+
+```bash
+# View pipeline status
+kubectl get pods -n kubeflow-user-example-com
+
+# Access Kubeflow Pipelines UI
+# Visit: http://<kubeflow-url>:3000
+```
+
+#### Option B: Run Local Standalone Pipeline (No Kubernetes)
+
+For local development/testing without Kubeflow:
+
+```bash
+cd src/data_pipeline
+
+# Sequential execution
 python _01_ingestion.py
 python _02_validation.py
-python _03_eda.py
-python _04_cleaning.py
-python _05_feature_engg.py
-python _06_preprocessing.py
+python _03_cleaning.py
+python _04_feature_engg.py
+python _05_preprocessing.py
+
+cd ../../     # at root project
+python -m src.model_pipeline._07_training.py       # Logs to MLflow
+python -m src.model_pipeline._08_evaluation.py     # Logs to MLflow
+python -m src.model_pipeline._09_evaluation.py     # Registers model in MLflow
+python -m src.model_pipeline._10_registry.py       # Manages registry
 ```
 
-#### Step 4: Train & Evaluate Model
-
-Once data is preprocessed, run model development pipeline:
+#### Step 7: View MLflow Experiment Tracking
 
 ```bash
-cd ../model-pipeline
-python _07_training.py       # Train the model
-python _08_evaluation.py     # Evaluate performance
-python _09_cross_validation.py  # Validate robustness
-python _10_tuning.py         # Hyperparameter optimization
+# Start MLflow UI
+mlflow ui --host 0.0.0.0 --port 5000
+
+# Access at: http://localhost:5000
 ```
 
-#### Step 5: Run Web Application
+In the MLflow UI, you can:
+- View all experiment runs
+- Compare model metrics and parameters
+- Track model versions
+- Access registered models in the registry
+
+#### Step 8: Deploy Model with KServe (Optional)
 
 ```bash
-cd ../../frontend
+cd deploy_kserve
+
+# Deploy model from MLflow registry
+python deployment.py
+
+# Check deployment status
+kubectl get kserve -n kubeflow-user-example-com
+```
+
+### Running the Frontend
+
+```bash
+cd frontend
+
+# Start Flask application
 python app.py
+
+# Access web UI at: http://localhost:5000
 ```
 
-Access the application at `http://localhost:5000`
+**Note:** Ensure model artifacts are available locally before starting the frontend, or configure it to fetch from MLflow registry.
+
 
 
 ## Usage
 
-**For Prediction on New Data:**
+### Running Online Predictions via Frontend
 
-Load the trained model and make predictions:
+The Flask web application provides a user-friendly interface for predictions:
 
-```python
-import pickle
-import pandas as pd
-
-# Load model
-with open('artifacts/model_v1/model.pkl', 'rb') as f:
-    model = pickle.load(f)
-
-# Load preprocessor
-with open('artifacts/model_v1/preprocessor.pkl', 'rb') as f:
-    features = pickle.load(f)
-
-# Prepare new employee data
-new_employee = pd.DataFrame({
-    'Age': [35],
-    'Monthly Income': [6000],
-    # ... other features
-})
-
-# Preprocess and predict
-processed = preprocessor.transform(new_employee)
-prediction = model.predict(processed)
-probability = model.predict_proba(processed)
-
-print(f"Attrition Risk: {prediction[0]}")
-print(f"Probability: {probability[0]}")
+```bash
+cd frontend
+python app.py
 ```
 
+Access at `http://localhost:5000` and input employee data to get attrition predictions.
 
-## Key Findings
 
-- Identify primary drivers of employee attrition
-- Understand demographic and workplace patterns
-- Data-driven recommendations for retention strategies
+## Troubleshooting
 
+### Kubeflow Submission Issues
+
+```bash
+# Check pipeline submission logs
+kubectl logs -f <pod-name> -n kubeflow-user-example-com
+
+# Verify cluster access
+kubectl cluster-info
+
+# Check component images
+docker images | grep employee-attrition
+```
+
+### MLflow Connection Issues
+
+```bash
+# Verify MLflow server is running
+curl http://localhost:5000
+
+# Check MLFLOW_TRACKING_URI environment variable
+echo $MLFLOW_TRACKING_URI
+
+```
 
 ## Contributing
 
 Please read our [Contributing Guidelines](CONTRIBUTION.md) before submitting pull requests.
 
 Contributions are welcome! Please follow standard Git workflow:
-1. Create a feature branch
+1. Create a feature branch (`git checkout -b feature/improvement`)
 2. Make your changes
-3. Submit a pull request
+3. Add tests if applicable
+4. Submit a pull request
 
+When contributing to the pipeline:
+- Ensure Kubeflow components follow the component SDK standards
+- Log metrics/artifacts to MLflow for reproducibility
+- Update documentation for new pipeline components
+- Test locally before submitting to Kubernetes
 
 ## License
-This project is under [MIT Licence](LICENCE) support.
+
+This project is licensed under the [MIT License](LICENCE).

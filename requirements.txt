@@ -17,4 +17,7 @@ kubeflow-training
 mlflow
 boto3
 
+feast
+feast[redis]
+feast[postgres]
 # kserve

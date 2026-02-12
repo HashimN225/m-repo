@@ -3,11 +3,12 @@ from kfp.dsl import component, Input, InputPath, Dataset
 
 
 @component(
-    base_image="sandy345/kubeflow-employee-attrition:v2"
+    base_image="sandy345/kubeflow-employee-attrition:latest"
     # base_image="python:3.10",
     # packages_to_install=['pandas', 'mlflow', 'scikit-learn', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
 )
 def evaluation_component(
+    feast_repo_path: str,
     test_data: Input[Dataset],
     tracking_uri: str,
     experiment_name: str,
@@ -20,6 +21,7 @@ def evaluation_component(
     test_path = os.path.join(test_data.path, "test.csv")
 
     metrics = evaluate_data(
+        feast_repo_path=feast_repo_path,
         test_path=test_path, 
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,

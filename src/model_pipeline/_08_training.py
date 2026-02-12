@@ -9,6 +9,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
 from _mlflow.registry import MLflowRegistry
 from dotenv import load_dotenv
+from feast import FeatureStore
 
 load_dotenv()
 
@@ -83,6 +84,7 @@ def training_data(
     tracking_uri: str, 
     experiment_name: str, 
     artifact_name: str,
+    feast_repo_path: str,
 ):
     print("=" * 50)
     print("Starting training job...")
@@ -93,24 +95,34 @@ def training_data(
     print(f"Tracking URI: {tracking_uri}")
     print(f"Experiment: {experiment_name}")
     print("=" * 50)
+
     
     # Download files from MinIO
     # Note: Artifact URIs are folders, actual files are inside
     print(f"Checking file path to download from local or minio....")
-    print('original_train_path: ', train_path)
-    local_train = download_local_or_minio(train_path + "/train.csv") # local use "06_preprocess_train_df.csv"
-
-    print("original preprocess path: ", preprocessor_path)
+    local_train = download_local_or_minio(train_path + "/06_preprocess_train_df.csv") # local use "06_preprocess_train_df.csv"
     local_preprocessor = download_local_or_minio(preprocessor_path + "/preprocessor.pkl")
-
-    print("original best params: ", best_params_path)
     local_params = download_local_or_minio(best_params_path + "/tuning_metadata.json")
                                  
     # Load data
     print("\nLoading training data...")
-    df = pd.read_csv(local_train)
-    X_train = df.drop(columns=['Attrition'])
-    y_train = df['Attrition']
+    entity_df = pd.read_csv(local_train)
+
+    # --- feast -------------
+    print("\nGetting training data from feast....")
+    entity_df['event_timestamp'] = pd.to_datetime(entity_df['event_timestamp'])
+
+    # initalize store
+    store = FeatureStore(repo_path=feast_repo_path)
+
+    df_train = store.get_historical_features(
+        entity_df=entity_df,
+        features=store.get_feature_service("employee_attrition_features")
+    ).to_df()
+
+
+    X_train = df_train.drop(columns=['Employee ID', 'event_timestamp', 'Attrition'])
+    y_train = df_train['Attrition']
     print(f"Training data shape: {X_train.shape}")
     
     # Load parameters
@@ -173,6 +185,7 @@ if __name__ == "__main__":
     from pathlib import Path 
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("--feast_repo_path", required=True)
     parser.add_argument("--train_path", required=True)
     parser.add_argument("--preprocessor_path", required=True)
     parser.add_argument("--best_params_path", required=True)
@@ -180,6 +193,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     training_data(
+        feast_repo_path=args.feast_repo_path,
         train_path=args.train_path,
         preprocessor_path=args.preprocessor_path,
         best_params_path=args.best_params_path,
@@ -189,4 +203,4 @@ if __name__ == "__main__":
         artifact_name=os.environ.get("MLFLOW_MODEL_NAME", "model-name"),
     )
 
-# python -m src.model_pipeline._08_training --train_path "datasets/data-pipeline" --preprocessor_path "artifacts" --best_params_path "artifacts" --mlflow_run_id "53f3eb2d18904750af468dead7ab1447"
+# python -m src.model_pipeline._08_training --feast_repo_path "_feast/feature_repo" --train_path "datasets/data-pipeline" --preprocessor_path "artifacts" --best_params_path "artifacts" --mlflow_run_id "819a7e7d09484e15a3dab306e3d047bf"

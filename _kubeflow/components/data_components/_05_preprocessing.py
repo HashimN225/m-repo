@@ -2,7 +2,7 @@ from kfp import dsl
 from kfp.dsl import component, Input, Output, Dataset, Model
 
 @component(
-    base_image="sandy345/kubeflow-employee-attrition:v2"
+    base_image="sandy345/kubeflow-employee-attrition:latest"
     # base_image="python:3.10",
     # packages_to_install=['pandas', 'scikit-learn', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
 )
@@ -11,6 +11,7 @@ def preprocessed_component(
     train_data: Output[Dataset],
     test_data: Output[Dataset],
     preprocessor_model: Output[Model],
+    feast_data: Output[Dataset]
 ):
     import os
     import joblib
@@ -18,20 +19,26 @@ def preprocessed_component(
     from src.data_pipeline._06_preprocessing import preprocess_data
 
     input_path = os.path.join(input_data.path, "feature_engg.csv")
-
-    train_df, test_df, preprocessor_obj = preprocess_data(input_path)
-
+    
     os.makedirs(train_data.path, exist_ok=True)
     os.makedirs(test_data.path, exist_ok=True)
     os.makedirs(preprocessor_model.path, exist_ok=True)
+    os.makedirs(feast_data.path, exist_ok=True)
 
     train_output_path = os.path.join(train_data.path, "train.csv")
-    train_df.to_csv(train_output_path, index=False)
-
     test_output_path = os.path.join(test_data.path, "test.csv")
-    test_df.to_csv(test_output_path, index=False)
-
     preprocessor_output_path = os.path.join(preprocessor_model.path, "preprocessor.pkl")
+    feast_dataset_path = os.path.join(feast_data.path, "preprocessed_data.parquet")
+
+
+    train_df, test_df, preprocessor_obj = preprocess_data(
+        df_path=input_path,
+        parquet_output_path=feast_dataset_path
+    )
+
+    
+    train_df.to_csv(train_output_path, index=False)
+    test_df.to_csv(test_output_path, index=False)
     joblib.dump(preprocessor_obj, preprocessor_output_path)
 
     # save in s3
@@ -47,3 +54,4 @@ def preprocessed_component(
     print(f"Train data saved to: {train_output_path}")
     print(f"Test data saved to: {test_output_path}")
     print(f"Scaler saved to: {preprocessor_output_path}")
+    print(f"Feast Parquet saved at: {feast_dataset_path}")

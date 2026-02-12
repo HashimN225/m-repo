@@ -86,7 +86,7 @@ def feature_data(df_path: str) -> pd.DataFrame:
 
 
     # drop unnecessary columns
-    df_fe = df_fe.drop(columns=['Employee ID', 'Job Role', 'Distance from Home', 'Marital Status', 'Gender', 'dataset_type'])
+    df_fe = df_fe.drop(columns=['Job Role', 'Distance from Home', 'Marital Status', 'Gender', 'dataset_type'])
 
     print(df_fe.tail(10))
 

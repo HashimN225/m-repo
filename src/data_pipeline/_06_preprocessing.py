@@ -3,12 +3,20 @@ from sklearn.model_selection import train_test_split
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
-def preprocess_data(df_path: str) -> tuple[pd.DataFrame, pd.DataFrame, StandardScaler]:
-    df_pp = pd.read_csv(df_path)
+def preprocess_data(df_path: str, parquet_output_path: str) -> tuple[pd.DataFrame, pd.DataFrame, StandardScaler]:
+    # ------- Feast Logic ---------
+    full_df = pd.read_csv(df_path)
 
+    if 'event_timestamp' not in full_df.columns:
+        full_df['event_timestamp'] = pd.Timestamp.now()
+
+    full_df.to_parquet(parquet_output_path, index=False)
+    print(f"✅ Feast source saved to: {parquet_output_path}")
+    # --- END FEAST LOGIC ---
+     
     # Separate features and target
-    X = df_pp.drop(columns=['Attrition'])
-    y = df_pp['Attrition']
+    X = full_df.drop(columns=['Attrition'])
+    y = full_df['Attrition']
 
     # Preprocess
     # 1. Scale Numeric cols: Scaling is about meaning, not datatype. Does the distance between values mean something numeric?
@@ -58,10 +66,18 @@ if __name__ == "__main__":
 
     ARTIFACTS_PATH = BASE_DIR / "artifacts"
     os.makedirs(ARTIFACTS_PATH, exist_ok=True)
-    
     PREPROCESSOR_PATH = ARTIFACTS_PATH / "preprocessor.pkl"
 
-    train_df, test_df, preprocesor = preprocess_data(FEATURED_PATH)
+    # New Paths for Feast
+    FEAST_DATA_DIR = BASE_DIR / "_feast" / "feature_repo" / "data" 
+    os.makedirs(FEAST_DATA_DIR, exist_ok=True)
+    PARQUET_PATH = FEAST_DATA_DIR / "preprocessed_data.parquet"
+
+
+    train_df, test_df, preprocesor = preprocess_data(
+        df_path=FEATURED_PATH,
+        parquet_output_path=PARQUET_PATH
+    )
 
     # Save preprocessed data
     joblib.dump(preprocesor, PREPROCESSOR_PATH)

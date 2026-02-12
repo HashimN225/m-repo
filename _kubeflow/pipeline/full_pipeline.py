@@ -10,6 +10,7 @@ from _kubeflow.components.data_components._04_feature_engg import feature_engg_c
 from _kubeflow.components.data_components._05_preprocessing import preprocessed_component
 
 # model
+from _kubeflow.components.model_components.feast_sync import feast_sync_component
 from _kubeflow.components.model_components._07_training import trainer_model_component
 from _kubeflow.components.model_components._08_evaluation import evaluation_component
 from _kubeflow.components.model_components._06_tuning import tuning_component
@@ -21,12 +22,11 @@ from _kubeflow.components.util.wait_job import wait_for_training
 
 @dsl.pipeline( 
     name="Employee Attrition Full Pipeline", 
-    description="Data -> Training -> Tuning -> Evaluation -> MLflow Registry"
+    description="Data  Feast_Registry  Training  Tuning  Evaluation  MLflow Registry"
 )
 def full_pipeline(
     namespace: str = "kubeflow",
-    trainer_image: str = "sandy345/kubeflow-employee-attrition:v2",
-    # trainer_image: str = "python:3.10",
+    trainer_image: str = "sandy345/kubeflow-employee-attrition:latest",
     cpu: str = "200m",
     memory: str = "512Mi",
     tracking_uri: str = "http://mlflow.mlflow.svc.cluster.local:80",
@@ -42,43 +42,61 @@ def full_pipeline(
     #     key="employee-attrition/employee_attrition.csv"
     # )
     ingest = ingestion_component()
+    
     validate = validation_component(
         input_data=ingest.outputs['output_data']
-    )
+    ).after(ingest)
+
     cleaned = cleaned_component(
         input_data=validate.outputs['output_data']
-    )
-    transform = feature_engg_component(
+    ).after(validate)
+    
+    feature_engg = feature_engg_component(
         input_data=cleaned.outputs['output_data']
-    )
+    ).after(cleaned)
+    kubernetes.set_image_pull_policy(feature_engg, "Always")
+    
+
     preprocess = preprocessed_component(
-        input_data=transform.outputs['output_data']
-    )
+        input_data=feature_engg.outputs['output_data']
+    ).after(feature_engg)
+    kubernetes.set_image_pull_policy(preprocess, "Always")
 
     # preprocess outputs: 
     # - train_data 
     # - test_data 
     # - preprocessor_model
+    # - feast_data => output_parquet
 
     # model pipeline
     # ----------------------------------------------------
+    feast_sync = feast_sync_component(
+        feast_data=preprocess.outputs['feast_data'],
+        feast_repo_path="_feast/feature_repo"
+    ).after(preprocess)
+    kubernetes.set_image_pull_policy(feast_sync, "Always")
+    
+    
     tuning = tuning_component(
+        feast_repo_path="_feast/feature_repo",
         train_data=preprocess.outputs['train_data'],
         test_data=preprocess.outputs['test_data'],
         preprocessor_model=preprocess.outputs['preprocessor_model'],
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,
-    )
+    ).after(feast_sync)
+    kubernetes.set_image_pull_policy(tuning, "Always")
     # tune outputs: tuning_metadata, mlflow_metadata [run_id]
 
 
     # trainer job - kubeflow trainer
-    job = trainer_model_component(
+    train_job = trainer_model_component(
         job_name=f"attrition-trainer-job-{uuid.uuid4().hex[:4]}",
         namespace=namespace,
         image=trainer_image,
         cpu=cpu,
         memory=memory,
+        feast_repo_path="_feast/feature_repo",
         train_path=preprocess.outputs['train_data'],
         preprocessor_model=preprocess.outputs['preprocessor_model'],
         tuning_metadata=tuning.outputs['tuning_metadata'],
@@ -86,21 +104,27 @@ def full_pipeline(
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,
         artifact_name=artifact_name,
-    )
+    ).after(tuning)
+    kubernetes.set_image_pull_policy(train_job, "Always")
 
+    
     wait = wait_for_training(
-        job_name=job.outputs['job_output'],
+        job_name=train_job.outputs['job_output'],
         namespace=namespace
-    )
+    ).after(train_job)
 
+    
     eval = evaluation_component(
+        feast_repo_path="_feast/feature_repo",
         test_data=preprocess.outputs['test_data'],
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,
         artifact_name=artifact_name,
         mlflow_metadata=tuning.outputs["mlflow_metadata"]
     ).after(wait)
+    kubernetes.set_image_pull_policy(eval, "Always")
 
+    
     reg = register_model_component(
         registry_name=registry_name,
         recall_threshold=recall_threshold,

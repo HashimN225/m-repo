@@ -11,12 +11,12 @@ def preprocessed_component(
     train_data: Output[Dataset],
     test_data: Output[Dataset],
     preprocessor_model: Output[Model],
-    feast_data: Output[Dataset]
+    feast_data: Output[Dataset],
+    # feast_path_file: Output[Dataset] # get dynamic-id path file for model tuning, training etc..
 ):
     import os
     import joblib
-    # import boto3
-    from src.data_pipeline._06_preprocessing import preprocess_data
+    from src.data_preparation._06_preprocessing import preprocess_data
 
     input_path = os.path.join(input_data.path, "feature_engg.csv")
     
@@ -29,6 +29,7 @@ def preprocessed_component(
     test_output_path = os.path.join(test_data.path, "test.csv")
     preprocessor_output_path = os.path.join(preprocessor_model.path, "preprocessor.pkl")
     feast_dataset_path = os.path.join(feast_data.path, "preprocessed_data.parquet")
+    # feast_path_txt = os.path.join(feast_path_file.path, "feast_data_path.txt")
 
 
     train_df, test_df, preprocessor_obj = preprocess_data(
@@ -41,17 +42,15 @@ def preprocessed_component(
     test_df.to_csv(test_output_path, index=False)
     joblib.dump(preprocessor_obj, preprocessor_output_path)
 
-    # save in s3
-    # s3 = boto3.client('s3')
-    # bucket = "ml-basics"
-    # key = "employee-attrition/preprocessing"
-
-    # s3.upload_file(train_output_path, bucket, f"{key}/train.csv")
-    # s3.upload_file(test_output_path, bucket, f"{key}/test.csv")
-    # s3.upload_file(preprocessor_output_path, bucket, f"{key}/preprocessor.pkl")
+    # save dynamic-id in minIO
+    # dynamic_feast_path = f"s3://mlpipeline/v2/artifacts{feast_dataset_path.split('/minio')[-1]}"
+    # print('dynamic-path-file: ', dynamic_feast_path)
+    # with open(feast_path_txt, 'w') as f:
+    #     f.write(dynamic_feast_path)
 
     print("Preprocessing completed.")
     print(f"Train data saved to: {train_output_path}")
     print(f"Test data saved to: {test_output_path}")
     print(f"Scaler saved to: {preprocessor_output_path}")
     print(f"Feast Parquet saved at: {feast_dataset_path}")
+    # print(f"Feast path saved: {feast_path_txt}")

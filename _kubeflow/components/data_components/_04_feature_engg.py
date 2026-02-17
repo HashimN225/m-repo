@@ -12,7 +12,7 @@ def feature_engg_component(
 ):
     import os
     # import boto3
-    from src.data_pipeline._05_feature_engg import feature_data
+    from src.data_preparation._05_feature_engg import feature_data
 
     input_path = os.path.join(input_data.path, "cleaned.csv")
     

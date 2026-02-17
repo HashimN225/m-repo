@@ -2,14 +2,22 @@ project: employee_attrition
 provider: local
 
 registry:
+    # path: registry.db
     registry_type: sql
-    path: postgresql+psycopg://feast:feast@postgres.feast.svc.cluster.local:5432/feast
+    path: postgresql+psycopg://feast:feast@167.71.235.127:30032/feast
+    # path: postgresql+psycopg://feast:feast@postgres.feast.svc.cluster.local:5432/feast
     cache_ttl_seconds: 60
 
 online_store:
     type: redis
-    connection_string: "redis.feast.svc.cluster.local:6379,password=changeMeVeryStrong"
+    connection_string: "167.71.235.127:30379,password=changeMeVeryStrong"
+    # connection_string: "redis.feast.svc.cluster.local:6379,password=changeMeVeryStrong"
 
 offline_store:
     type: file
-    
+    # path: s3://mlpipeline/v2/artifacts/employee-attrition-full-pipeline/preprocessed-component/feast_data  # default path
+    # options:
+    #     client_kwargs:
+    #         endpoint_url: http://minio-service.kubeflow:9000
+    #         aws_access_key_id: minio
+    #         aws_secret_access_key: minio123

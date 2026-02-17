@@ -1,5 +1,9 @@
-/artifacts/
-/logs/
+artifacts/
+logs/
+datasets/data-pipeline
+test-workflow.py
+feature_store_ex.yaml
+
 
 venv/
 .env
@@ -7,15 +11,8 @@ venv/
 */__pycache__
 */*/__pycache__
 */*/*/__pycache__
-/datasets/data-engg
 
 .git
 .gitignore
-__pycache__
-*.pyc
-*.pyo
-.pytest_cache
 .DS_Store
-node_modules
 .vscode
-.idea

@@ -1,5 +1,6 @@
 from kfp import dsl
 from kfp.dsl import Input, Output, OutputPath, Model, Dataset
+import yaml
 
 @dsl.component(
     base_image="sandy345/kubeflow-employee-attrition:latest"
@@ -11,15 +12,15 @@ def tuning_component(
     train_data: Input[Dataset],
     test_data: Input[Dataset],
     preprocessor_model: Input[Model],
+    # feast_path_file: Input[Dataset], # new input
     tuning_metadata: Output[Dataset],
     tracking_uri: str,
     experiment_name: str,
     mlflow_metadata: OutputPath(str),
 ):
     import os
-    # import boto3
     import json
-    from src.model_pipeline._07_tuning import tuning_data
+    from src.model_development._07_tuning import tuning_data
 
     os.makedirs(tuning_metadata.path, exist_ok=True)
 
@@ -44,13 +45,5 @@ def tuning_component(
     with open(mlflow_metadata, "w") as f:
         f.write(mlflow_run_id)
             
-    # save in s3
-    # s3 = boto3.client('s3')
-    # s3.put_object(
-    #     Bucket="ml-basics",
-    #     Key="employee-attrition/artifacts/tuning_metadata.json",
-    #     Body=json.dumps(tuning_metadata).encode("utf-8")
-    # )
-
     print("Tuning completed successfully.")
 

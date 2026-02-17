@@ -15,7 +15,7 @@ def ingestion_component(
 # ):
     import os
     # import boto3
-    from src.data_pipeline._01_ingestion import ingestion
+    from src.data_preparation._01_ingestion import ingestion
 
 
     # df = ingestion(bucket, key)

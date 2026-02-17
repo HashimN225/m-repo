@@ -82,6 +82,7 @@ def full_pipeline(
         train_data=preprocess.outputs['train_data'],
         test_data=preprocess.outputs['test_data'],
         preprocessor_model=preprocess.outputs['preprocessor_model'],
+        # feast_path_file=preprocess.outptus['feast_path_file'],
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,
     ).after(feast_sync)

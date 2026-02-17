@@ -16,7 +16,7 @@ def evaluation_component(
     mlflow_metadata: str,
 ):
     import os
-    from src.model_pipeline._09_evaluation import evaluate_data
+    from src.model_development._09_evaluation import evaluate_data
 
     test_path = os.path.join(test_data.path, "test.csv")
 

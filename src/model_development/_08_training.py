@@ -100,7 +100,7 @@ def training_data(
     # Download files from MinIO
     # Note: Artifact URIs are folders, actual files are inside
     print(f"Checking file path to download from local or minio....")
-    local_train = download_local_or_minio(train_path + "/06_preprocess_train_df.csv") # local use "06_preprocess_train_df.csv"
+    local_train = download_local_or_minio(train_path + "/train.csv") # local use "06_preprocess_train_df.csv"
     local_preprocessor = download_local_or_minio(preprocessor_path + "/preprocessor.pkl")
     local_params = download_local_or_minio(best_params_path + "/tuning_metadata.json")
                                  
@@ -203,4 +203,4 @@ if __name__ == "__main__":
         artifact_name=os.environ.get("MLFLOW_MODEL_NAME", "model-name"),
     )
 
-# python -m src.model_pipeline._08_training --feast_repo_path "_feast/feature_repo" --train_path "datasets/data-pipeline" --preprocessor_path "artifacts" --best_params_path "artifacts" --mlflow_run_id "819a7e7d09484e15a3dab306e3d047bf"
+# python -m src.model_development._08_training --feast_repo_path "_feast/feature_repo" --train_path "datasets/data-pipeline" --preprocessor_path "artifacts" --best_params_path "artifacts" --mlflow_run_id "264000d465594cd7a435b502df44529b"

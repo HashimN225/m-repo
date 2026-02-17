@@ -4,11 +4,20 @@ import pandas as pd
 
 store = FeatureStore(repo_path="./feature_repo")
 
+try:
+    print("Attempting to ping Redis...")
+    store.get_online_store()._get_client().ping()
+    print("✅ Online Store Connection Successful!")
+except Exception as e:
+    print(f"❌ Connection Failed: {e}")
+
+
 # Offline Fetch
 entity_df = pd.DataFrame({
     "Employee ID": [30257, 9063],
     "event_timestamp": [pd.Timestamp.now(), pd.Timestamp.now()]
 })
+print('ent-df: ', entity_df)
 
 training_df = store.get_historical_features(
     entity_df=entity_df,

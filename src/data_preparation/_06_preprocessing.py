@@ -1,38 +1,63 @@
+import os
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from dotenv import load_dotenv
 
-def preprocess_data(df_path: str, parquet_output_path: str) -> tuple[pd.DataFrame, pd.DataFrame, StandardScaler]:
+load_dotenv()
+
+
+def preprocess_data(df_path: str, parquet_output_path: str):
     # ------- Feast Logic ---------
     full_df = pd.read_csv(df_path)
 
     if 'event_timestamp' not in full_df.columns:
         full_df['event_timestamp'] = pd.Timestamp.now()
 
+    print("Columns in full_df before saving to parquet:")
+    print(full_df.columns.tolist())
+
     full_df.to_parquet(parquet_output_path, index=False)
-    print(f"✅ Feast source saved to: {parquet_output_path}")
+    print(f"Temporarily save Feast data in: {parquet_output_path}")
     # --- END FEAST LOGIC ---
      
     # Separate features and target
-    X = full_df.drop(columns=['Attrition'])
-    y = full_df['Attrition']
+    X = full_df.drop(columns=["attrition"])
+    y = full_df["attrition"]
 
     # Preprocess
     # 1. Scale Numeric cols: Scaling is about meaning, not datatype. Does the distance between values mean something numeric?
     #  - distance matter
     #  - magnitudes matter
-    NUMERIC_COLS = ['Years at Company', 'Company Tenure', 'AnnualIncome', 'RoleStagnationRatio', 'TenureGap', 'Number of Promotions', 'Number of Dependents']
-    
+    NUMERIC_COLS = [
+        "years_at_company",
+        "company_tenure",
+        "annual_income",
+        "role_stagnation_ratio",
+        "tenure_gap",
+        "number_of_promotions",
+        "number_of_dependents",
+    ]
+
     # 2. Binary (0/1): Do not scale
     #  - 0/1 is a state, not quantity
     #  - scaling destroys interpretability
-    BINARY_COLS = ["Overtime", "Remote Work", "EarlyCompanyTenureRisk", "LongTenureLowRoleRisk"]
+    BINARY_COLS = ["overtime", "remote_work", "early_company_tenure_risk", "long_tenure_low_role_risk"]
 
     # 3. Ordinal Categorical: they look numeric but NOT
     #  - Check if distance between 1 and 2 is same as 3 and 4 ?
-    #  - use OneHotEnoder unless you have strong reason not to.
-    CATEGORICAL_COLS = ["Education Level", "Job Level", "Company Size", "Performance Rating", "AgeGroup", "OverallSatisfaction", "Opportunities", "Company Reputation" ]
+    #  - use OneHotEncoder unless you have strong reason not to.
+    CATEGORICAL_COLS = [
+        "education_level",
+        "job_level",
+        "company_size",
+        "performance_rating",
+        "age_group",
+        "overall_satisfaction",
+        "opportunities",
+        "company_reputation",
+    ]
     
     preprocessor = ColumnTransformer(
         transformers=[
@@ -54,7 +79,6 @@ def preprocess_data(df_path: str, parquet_output_path: str) -> tuple[pd.DataFram
 
 
 if __name__ == "__main__":
-    import os
     from pathlib import Path
     import joblib
     
@@ -74,12 +98,12 @@ if __name__ == "__main__":
     PARQUET_PATH = FEAST_DATA_DIR / "preprocessed_data.parquet"
 
 
-    train_df, test_df, preprocesor = preprocess_data(
+    train_df, test_df, preprocessor = preprocess_data(
         df_path=FEATURED_PATH,
-        parquet_output_path=PARQUET_PATH
+        parquet_output_path=PARQUET_PATH,
     )
 
     # Save preprocessed data
-    joblib.dump(preprocesor, PREPROCESSOR_PATH)
+    joblib.dump(preprocessor, PREPROCESSOR_PATH)
     train_df.to_csv(TRAIN_PATH, index=False)
     test_df.to_csv(TEST_PATH, index=False)

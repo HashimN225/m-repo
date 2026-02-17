@@ -14,7 +14,7 @@ def register_model_component(
     mlflow_metadata: str
 ):
     import os
-    from src.model_pipeline._10_registry import register_model_to_mlflow, promote_to_production
+    from src.model_development._10_registry import register_model_to_mlflow, promote_to_production
 
     registered_model, metrics = register_model_to_mlflow(    
         registry_name=registry_name, 

@@ -180,7 +180,7 @@ employee-attrition-kubeflow/
 │   └── registry.py                     # MLflow model registry operations
 │
 ├── src/                                # Standalone Python modules (local execution)
-│   ├── data_pipeline/
+│   ├── data_preparation/
 │   │   ├── _01_ingestion.py
 │   │   ├── _02_validation.py
 │   │   ├── _03_eda.py
@@ -188,7 +188,7 @@ employee-attrition-kubeflow/
 │   │   ├── _05_feature_engg.py
 │   │   ├── _06_preprocessing.py
 │   │   └── upload_dataset.py
-│   └── model_pipeline/
+│   └── model_development/
 │       ├── _07_tuning.py
 │       ├── _08_training.py
 │       ├── _09_evaluation.py
@@ -274,6 +274,10 @@ The end-to-end ML workflow is orchestrated through Kubeflow as containerized, re
    - Input: `minio://<feature_engg.csv>`
    - Output: `minio://<train.csv>`, `minio://<test.csv>`, `minio://<preprocessor.pkl>`
    - Applies: ColumnTransformer, test-train split (80-20)
+
+#### **Feast Setup** (_kubeflow/components/model_components/)
+   - Run feast to store datasets in both offlien and online store
+
 
 #### **Model Development Pipeline** (_kubeflow/components/model_components/)
 
@@ -460,20 +464,22 @@ kubectl get pods -n kubeflow-user-example-com
 For local development/testing without Kubeflow:
 
 ```bash
-cd src/data_pipeline
+cd src/data_preparation
 
 # Sequential execution
 python _01_ingestion.py
 python _02_validation.py
-python _03_cleaning.py
-python _04_feature_engg.py
-python _05_preprocessing.py
+python _03_eda.py
+python _04_cleaning.py
+python _05_feature_engg.py
+python _06_preprocessing.py
 
 cd ../../     # at root project
-python -m src.model_pipeline._07_training.py       # Logs to MLflow
-python -m src.model_pipeline._08_evaluation.py     # Logs to MLflow
-python -m src.model_pipeline._09_evaluation.py     # Registers model in MLflow
-python -m src.model_pipeline._10_registry.py       # Manages registry
+python -m src.model_development.feast_sync            # run feast
+python -m src.model_development._07_tuning.py
+python -m src.model_development._08_training.py          
+python -m src.model_development._09_evaluation.py     
+python -m src.model_development._10_registry.py       
 ```
 
 #### Step 7: View MLflow Experiment Tracking

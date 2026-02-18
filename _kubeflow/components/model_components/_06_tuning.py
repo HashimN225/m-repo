@@ -3,7 +3,7 @@ from kfp.dsl import Input, Output, OutputPath, Model, Dataset
 import yaml
 
 @dsl.component(
-    base_image="sandy345/kubeflow-employee-attrition:latest"
+    base_image="<docker-image>:tag"
     # base_image="python:3.10",
     # packages_to_install=['pandas', 'mlflow', 'scikit-learn', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
 )
@@ -12,14 +12,24 @@ def tuning_component(
     train_data: Input[Dataset],
     test_data: Input[Dataset],
     preprocessor_model: Input[Model],
-    # feast_path_file: Input[Dataset], # new input
     tuning_metadata: Output[Dataset],
     tracking_uri: str,
     experiment_name: str,
     mlflow_metadata: OutputPath(str),
+    minio_endpoint: str,
+    minio_access_key: str,
+    minio_secret_key: str,
 ):
     import os
     import json
+
+    # Must be set BEFORE any feast/pyarrow/boto3 imports
+    os.environ["AWS_ACCESS_KEY_ID"] = minio_access_key
+    os.environ["AWS_SECRET_ACCESS_KEY"] = minio_secret_key
+    os.environ["AWS_DEFAULT_REGION"] = "us-east-1"          # dummy, but required
+    os.environ["AWS_S3_ENDPOINT"] = minio_endpoint
+    os.environ["FEAST_S3_ENDPOINT_URL"] = minio_endpoint
+
     from src.model_development._07_tuning import tuning_data
 
     os.makedirs(tuning_metadata.path, exist_ok=True)

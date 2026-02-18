@@ -5,7 +5,7 @@ from kubernetes.client import V1EnvVar, V1EnvVarSource, V1SecretKeySelector
 
 
 @dsl.component(
-    base_image="sandy345/kubeflow-employee-attrition:latest",
+    base_image="<docker-image>:tag",
     packages_to_install=["kubernetes"]
     # base_image="python:3.10",
     # packages_to_install=["kubernetes", 'scikit-learn', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
@@ -53,7 +53,7 @@ def trainer_model_component(
             },
             "trainer": {
                 "image": image,
-                "command": ["python", "-m", "src.model_pipeline._08_training"],
+                "command": ["python", "-m", "src.model_development._08_training"],
                 "args": [
                     "--feast_repo_path", feast_repo_path,
                     "--train_path", train_path.uri,
@@ -101,11 +101,11 @@ def trainer_model_component(
                     # Add these to your "env" list inside the train_job dictionary
                     {
                         "name": "FEAST_REGISTRY_URL",
-                        "value": "postgresql://minio:minio123@postgres.feast.svc.cluster.local:5432/feast"
+                        "value": "<feast-registry-url>"
                     },
                     {
                         "name": "FEAST_REDIS_URL",
-                        "value": "redis.feast.svc.cluster.local:6379,password=changeMeVeryStrong"
+                        "value": "<feast-redis-url>"
                     },
                 ]
             }

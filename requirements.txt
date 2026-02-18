@@ -11,6 +11,8 @@ python-dotenv
 # (optional)
 pyarrow
 joblib
+# Feast/pandas can read s3:// URLs:
+s3fs
 
 # kubeflow
 kfp

@@ -36,6 +36,7 @@ def validate_data(df_path: str) -> pd.DataFrame:
         validate_df = employee_schema(df, lazy=True)
         print("Data validation successful.")
         return validate_df
+
     except pa.errors.SchemaErrors as e:
         print("Data validation errors found:")
         print(e.failure_cases)

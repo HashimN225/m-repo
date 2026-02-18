@@ -3,8 +3,9 @@ logs/
 datasets/data-pipeline
 test-workflow.py
 feature_store_ex.yaml
+_feast/feature_repo/data
 
-
+/venv/
 venv/
 .env
 

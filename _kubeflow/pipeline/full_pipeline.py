@@ -1,4 +1,4 @@
-from kfp import dsl, kubernetes
+from kfp import dsl
 from kfp.compiler import Compiler
 import uuid
 
@@ -26,41 +26,39 @@ from _kubeflow.components.util.wait_job import wait_for_training
 )
 def full_pipeline(
     namespace: str = "kubeflow",
-    trainer_image: str = "sandy345/kubeflow-employee-attrition:latest",
+    trainer_image: str = "<docker-image>:<tag>",
     cpu: str = "200m",
     memory: str = "512Mi",
     tracking_uri: str = "http://mlflow.mlflow.svc.cluster.local:80",
-    experiment_name: str = "employee-attrition-v3",
+    experiment_name: str = "employee-attrition",
     artifact_name: str = "employee-attrition-model",
     registry_name: str = "register-employee-attrition-model",
     recall_threshold: float = 0.65,
+    feast_repo_path: str = "_feast/feature_repo",
+    minio_endpoint: str = "http://minio-service.kubeflow:9000",
+    minio_access_key: str = "<minio-access-key>",
+    minio_secret_key: str = "<minio-secret-key>",
 ):
     # data pipeline
     # -----------------------------------------------------
-    # ingest = ingestion_component(
-    #     bucket="ml-basics", 
-    #     key="employee-attrition/employee_attrition.csv"
-    # )
     ingest = ingestion_component()
     
     validate = validation_component(
         input_data=ingest.outputs['output_data']
-    ).after(ingest)
+    )
 
     cleaned = cleaned_component(
         input_data=validate.outputs['output_data']
-    ).after(validate)
-    
+    )
+
     feature_engg = feature_engg_component(
         input_data=cleaned.outputs['output_data']
-    ).after(cleaned)
-    kubernetes.set_image_pull_policy(feature_engg, "Always")
+    )
     
 
     preprocess = preprocessed_component(
         input_data=feature_engg.outputs['output_data']
-    ).after(feature_engg)
-    kubernetes.set_image_pull_policy(preprocess, "Always")
+    )
 
     # preprocess outputs: 
     # - train_data 
@@ -72,22 +70,27 @@ def full_pipeline(
     # ----------------------------------------------------
     feast_sync = feast_sync_component(
         feast_data=preprocess.outputs['feast_data'],
-        feast_repo_path="_feast/feature_repo"
-    ).after(preprocess)
-    kubernetes.set_image_pull_policy(feast_sync, "Always")
+        feast_repo_path=feast_repo_path,
+        minio_endpoint=minio_endpoint,
+        minio_access_key=minio_access_key,
+        minio_secret_key=minio_secret_key,
+    )
     
     
     tuning = tuning_component(
-        feast_repo_path="_feast/feature_repo",
+        feast_repo_path=feast_repo_path,
         train_data=preprocess.outputs['train_data'],
         test_data=preprocess.outputs['test_data'],
         preprocessor_model=preprocess.outputs['preprocessor_model'],
-        # feast_path_file=preprocess.outptus['feast_path_file'],
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,
+        minio_endpoint=minio_endpoint,
+        minio_access_key=minio_access_key,
+        minio_secret_key=minio_secret_key,
     ).after(feast_sync)
-    kubernetes.set_image_pull_policy(tuning, "Always")
-    # tune outputs: tuning_metadata, mlflow_metadata [run_id]
+    # tune outputs: 
+    # - tuning_metadata, 
+    # - mlflow_metadata [run_id]
 
 
     # trainer job - kubeflow trainer
@@ -97,7 +100,7 @@ def full_pipeline(
         image=trainer_image,
         cpu=cpu,
         memory=memory,
-        feast_repo_path="_feast/feature_repo",
+        feast_repo_path=feast_repo_path,
         train_path=preprocess.outputs['train_data'],
         preprocessor_model=preprocess.outputs['preprocessor_model'],
         tuning_metadata=tuning.outputs['tuning_metadata'],
@@ -105,8 +108,7 @@ def full_pipeline(
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,
         artifact_name=artifact_name,
-    ).after(tuning)
-    kubernetes.set_image_pull_policy(train_job, "Always")
+    )
 
     
     wait = wait_for_training(
@@ -116,14 +118,16 @@ def full_pipeline(
 
     
     eval = evaluation_component(
-        feast_repo_path="_feast/feature_repo",
+        feast_repo_path=feast_repo_path,
         test_data=preprocess.outputs['test_data'],
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,
         artifact_name=artifact_name,
-        mlflow_metadata=tuning.outputs["mlflow_metadata"]
-    ).after(wait)
-    kubernetes.set_image_pull_policy(eval, "Always")
+        mlflow_metadata=tuning.outputs["mlflow_metadata"],
+        minio_endpoint=minio_endpoint,
+        minio_access_key=minio_access_key,
+        minio_secret_key=minio_secret_key,
+    )
 
     
     reg = register_model_component(
@@ -133,8 +137,7 @@ def full_pipeline(
         experiment_name=experiment_name,
         artifact_name=artifact_name,
         mlflow_metadata=tuning.outputs["mlflow_metadata"]
-    ).after(eval)
-    kubernetes.set_image_pull_policy(reg, "Always")
+    )
 
 
 # Compile pipeline 

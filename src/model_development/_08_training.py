@@ -106,24 +106,23 @@ def training_data(
                                  
     # Load data
     print("\nLoading training data...")
-    entity_df = pd.read_csv(local_train)
+    entity_df_train = pd.read_csv(local_train)
 
-    # --- feast -------------
-    print("\nGetting training data from feast....")
-    entity_df['event_timestamp'] = pd.to_datetime(entity_df['event_timestamp'])
+    # ---------- feast -------------
+    entity_cols = ['employee_id', 'event_timestamp']
+    entity_df_train = entity_df_train[entity_cols].copy()
+    entity_df_train['event_timestamp'] = pd.to_datetime(entity_df_train['event_timestamp'])
 
-    # initalize store
     store = FeatureStore(repo_path=feast_repo_path)
 
     df_train = store.get_historical_features(
-        entity_df=entity_df,
+        entity_df=entity_df_train,
         features=store.get_feature_service("employee_attrition_features")
     ).to_df()
+    # ---------- end feast ----------
 
-
-    X_train = df_train.drop(columns=['Employee ID', 'event_timestamp', 'Attrition'])
-    y_train = df_train['Attrition']
-    print(f"Training data shape: {X_train.shape}")
+    X_train = df_train.drop(columns=['employee_id', 'event_timestamp', 'attrition'])
+    y_train = df_train['attrition']
     
     # Load parameters
     print("\nLoading best parameters...")
@@ -203,4 +202,4 @@ if __name__ == "__main__":
         artifact_name=os.environ.get("MLFLOW_MODEL_NAME", "model-name"),
     )
 
-# python -m src.model_development._08_training --feast_repo_path "_feast/feature_repo" --train_path "datasets/data-pipeline" --preprocessor_path "artifacts" --best_params_path "artifacts" --mlflow_run_id "264000d465594cd7a435b502df44529b"
+# python -m src.model_development._08_training --feast_repo_path "_feast/feature_repo" --train_path "datasets/data-pipeline" --preprocessor_path "artifacts" --best_params_path "artifacts" --mlflow_run_id "c8c5f3c57ebf4a98bcccec085f0c578f"

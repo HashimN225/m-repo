@@ -35,13 +35,14 @@ def tuning_data(feast_repo_path: str, train_path: str, test_path: str, preproces
     df_train = store.get_historical_features(
         entity_df=entity_df_train,
         features=store.get_feature_service("employee_attrition_features")
-    ).to_arrow().to_pandas(types_mapper=pd.ArrowDtype)
+    ).to_df()
+    # to_arrow().to_pandas(types_mapper=pd.ArrowDtype)
 
     print("Fetching testing features from Feast...")
     df_test = store.get_historical_features(
         entity_df=entity_df_test,
         features=store.get_feature_service("employee_attrition_features")
-    ).to_arrow().to_pandas(types_mapper=pd.ArrowDtype)
+    ).to_df()
 
     print(df_train.head(2))
     print(df_train.isnull().sum())

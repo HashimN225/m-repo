@@ -8,6 +8,7 @@ venv/
 */*/__pycache__
 */*/*/__pycache__
 /datasets/data-pipeline
+/_feast/feature_repo/data/
 
 /src/mlflow_runs
 

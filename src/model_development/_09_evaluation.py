@@ -24,6 +24,8 @@ def evaluate_data(feast_repo_path: str, test_path: str, tracking_uri: str, exper
 
         # --- feast -------------
         print("\nGetting training data from feast....")
+        entity_cols = ['employee_id', 'event_timestamp']
+        entity_df = entity_df[entity_cols].copy()
         entity_df['event_timestamp'] = pd.to_datetime(entity_df['event_timestamp'])
 
         # initalize store
@@ -35,8 +37,8 @@ def evaluate_data(feast_repo_path: str, test_path: str, tracking_uri: str, exper
         ).to_df()
         
 
-        X_test = df_test.drop(columns=['Employee ID', 'event_timestamp', 'Attrition'])
-        y_test = df_test['Attrition']
+        X_test = df_test.drop(columns=['employee_id', 'event_timestamp', 'attrition'])
+        y_test = df_test['attrition']
 
         # predict
         y_pred = model.predict(X_test)

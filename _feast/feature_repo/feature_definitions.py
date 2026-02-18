@@ -20,7 +20,7 @@ print(DATA_PATH)
 
 employee_preprocessed_source = FileSource(
     # path="data/preprocessed_data.parquet", # Path to offline store
-    path=DATA_PATH,
+    path="data/preprocessed_data.parquet",
     event_timestamp_column="event_timestamp",   # Feast requires a timestamp column
 )
 
@@ -81,6 +81,7 @@ employee_features_fs = FeatureService(
             "role_stagnation_ratio",
             "tenure_gap",
             "years_at_company",
+            "attrition",
         ]]
     ]
     # Note: 'attrition_label' is not included here as it's typically the target, not a feature for inference

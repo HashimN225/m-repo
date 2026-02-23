@@ -179,5 +179,5 @@ class MLflowRegistry:
     
 
     def load_registered_model(self, model_name: str, version: int):
-        model_uri = f"models://{model_name}/{version}"
+        model_uri = f"models:/{model_name}/{version}"
         return mlflow.sklearn.load_model(model_uri)

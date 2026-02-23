@@ -145,7 +145,7 @@ def training_data(
 
 
     # Train and log to MLflow
-    with registry.start_run(run_name='model-training-run', run_id=mlflow_run_id):
+    with registry.start_run(run_name='model-training-run', run_id=mlflow_run_id) as run:
         print("\nTraining the model...")
         pipeline.fit(X_train, y_train)
 
@@ -160,7 +160,10 @@ def training_data(
             stage='training'
         )
 
+        print('run_id: ', run.info.run_id)
+        print('artifact_uri: ', run.info.artifact_uri)
         print("Model logged to MLflow!")
+
     
     print(f"\n{'=' * 50}")
     print("✓ Training complete")

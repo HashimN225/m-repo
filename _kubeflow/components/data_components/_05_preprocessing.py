@@ -3,8 +3,6 @@ from kfp.dsl import component, Input, Output, Dataset, Model
 
 @component(
     base_image="sandy345/kubeflow-employee-attrition:v1"
-    # base_image="python:3.10",
-    # packages_to_install=['pandas', 'scikit-learn', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
 )
 def preprocessed_component(
     input_data: Input[Dataset],
@@ -14,7 +12,6 @@ def preprocessed_component(
 ):
     import os
     import joblib
-    # import boto3
     from src.data_pipeline._06_preprocessing import preprocess_data
 
     input_path = os.path.join(input_data.path, "feature_engg.csv")
@@ -34,14 +31,6 @@ def preprocessed_component(
     preprocessor_output_path = os.path.join(preprocessor_model.path, "preprocessor.pkl")
     joblib.dump(preprocessor_obj, preprocessor_output_path)
 
-    # save in s3
-    # s3 = boto3.client('s3')
-    # bucket = "ml-basics"
-    # key = "employee-attrition/preprocessing"
-
-    # s3.upload_file(train_output_path, bucket, f"{key}/train.csv")
-    # s3.upload_file(test_output_path, bucket, f"{key}/test.csv")
-    # s3.upload_file(preprocessor_output_path, bucket, f"{key}/preprocessor.pkl")
 
     print("Preprocessing completed.")
     print(f"Train data saved to: {train_output_path}")

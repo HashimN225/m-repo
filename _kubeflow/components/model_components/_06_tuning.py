@@ -3,8 +3,6 @@ from kfp.dsl import Input, Output, OutputPath, Model, Dataset
 
 @dsl.component(
     base_image="sandy345/kubeflow-employee-attrition:v1"
-    # base_image="python:3.10",
-    # packages_to_install=['pandas', 'mlflow', 'scikit-learn', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
 )
 def tuning_component(
     train_data: Input[Dataset],
@@ -16,7 +14,6 @@ def tuning_component(
     mlflow_metadata: OutputPath(str),
 ):
     import os
-    # import boto3
     import json
     from src.model_pipeline._07_tuning import tuning_data
 
@@ -41,13 +38,6 @@ def tuning_component(
     with open(mlflow_metadata, "w") as f:
         f.write(mlflow_run_id)
             
-    # save in s3
-    # s3 = boto3.client('s3')
-    # s3.put_object(
-    #     Bucket="ml-basics",
-    #     Key="employee-attrition/artifacts/tuning_metadata.json",
-    #     Body=json.dumps(tuning_metadata).encode("utf-8")
-    # )
 
     print("Tuning completed successfully.")
 

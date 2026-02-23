@@ -26,7 +26,6 @@ from _kubeflow.components.util.wait_job import wait_for_training
 def full_pipeline(
     namespace: str = "kubeflow",
     trainer_image: str = "sandy345/kubeflow-employee-attrition:v1",
-    # trainer_image: str = "python:3.10",
     cpu: str = "200m",
     memory: str = "512Mi",
     tracking_uri: str = "http://mlflow.mlflow.svc.cluster.local:80",
@@ -34,13 +33,12 @@ def full_pipeline(
     artifact_name: str = "employee-attrition-model",
     registry_name: str = "register-employee-attrition-model",
     recall_threshold: float = 0.65,
+    minio_endpoint: str = "http://minio-service.kubeflow:9000",
+    minio_access_key: str = "<minio-access-key>", #minio
+    minio_secret_key: str = "<minio-secret-key>", #minio123
 ):
     # data pipeline
     # -----------------------------------------------------
-    # ingest = ingestion_component(
-    #     bucket="ml-basics", 
-    #     key="employee-attrition/employee_attrition.csv"
-    # )
     ingest = ingestion_component()
     validate = validation_component(
         input_data=ingest.outputs['output_data']
@@ -101,7 +99,10 @@ def full_pipeline(
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,
         artifact_name=artifact_name,
-        mlflow_metadata=tuning.outputs["mlflow_metadata"]
+        mlflow_metadata=tuning.outputs["mlflow_metadata"],
+        minio_endpoint=minio_endpoint,
+        minio_access_key=minio_access_key,
+        minio_secret_key=minio_secret_key,
     ).after(wait)
 
 

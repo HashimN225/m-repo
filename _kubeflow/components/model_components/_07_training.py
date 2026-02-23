@@ -6,8 +6,6 @@ from kubernetes.client import V1EnvVar, V1EnvVarSource, V1SecretKeySelector
 
 @dsl.component(
     base_image="sandy345/kubeflow-employee-attrition:v1"
-    # base_image="python:3.10",
-    # packages_to_install=["kubernetes", 'scikit-learn', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
 )
 def trainer_model_component(
     job_name: str,

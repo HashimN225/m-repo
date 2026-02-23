@@ -25,7 +25,7 @@ from _kubeflow.components.util.wait_job import wait_for_training
 )
 def full_pipeline(
     namespace: str = "kubeflow",
-    trainer_image: str = "sandy345/kubeflow-employee-attrition:v2",
+    trainer_image: str = "sandy345/kubeflow-employee-attrition:v1",
     # trainer_image: str = "python:3.10",
     cpu: str = "200m",
     memory: str = "512Mi",
@@ -87,11 +87,14 @@ def full_pipeline(
         experiment_name=experiment_name,
         artifact_name=artifact_name,
     )
+    job.container.set_image_pull_policy("Always")
+
 
     wait = wait_for_training(
         job_name=job.outputs['job_output'],
         namespace=namespace
     )
+
 
     eval = evaluation_component(
         test_data=preprocess.outputs['test_data'],
@@ -100,6 +103,7 @@ def full_pipeline(
         artifact_name=artifact_name,
         mlflow_metadata=tuning.outputs["mlflow_metadata"]
     ).after(wait)
+
 
     reg = register_model_component(
         registry_name=registry_name,

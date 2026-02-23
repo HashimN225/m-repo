@@ -1,7 +1,7 @@
 from kfp.dsl import component
 
 @component(
-    base_image="sandy345/kubeflow-employee-attrition:v2"
+    base_image="sandy345/kubeflow-employee-attrition:v1"
     # base_image="python:3.10",
     # packages_to_install=['kubernetes', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
 )

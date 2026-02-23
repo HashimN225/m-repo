@@ -14,3 +14,4 @@ venv/
 /src/mlflow_runs
 
 /deploy_kserve
+/_kubeflow/components/model_components/_077_*.py

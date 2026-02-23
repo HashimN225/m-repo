@@ -85,13 +85,14 @@ def full_pipeline(
         experiment_name=experiment_name,
         artifact_name=artifact_name,
     )
-    job.container.set_image_pull_policy("Always")
+    kubernetes.set_image_pull_policy(job, "Always")
 
 
     wait = wait_for_training(
         job_name=job.outputs['job_output'],
         namespace=namespace
     )
+    kubernetes.set_image_pull_policy(wait, "Always")
 
 
     eval = evaluation_component(
@@ -104,6 +105,7 @@ def full_pipeline(
         minio_access_key=minio_access_key,
         minio_secret_key=minio_secret_key,
     ).after(wait)
+    kubernetes.set_image_pull_policy(eval,"Always")
 
 
     reg = register_model_component(

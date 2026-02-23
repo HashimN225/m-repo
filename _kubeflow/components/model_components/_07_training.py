@@ -22,8 +22,6 @@ def trainer_model_component(
     experiment_name: str,
     artifact_name: str,
 ):
-    """Creates a Kubeflow TrainJob for model training with MinIO access."""
-    
     from kubernetes import client, config
     
     # Load in-cluster config
@@ -73,7 +71,7 @@ def trainer_model_component(
                     {"name": "MLFLOW_EXPERIMENT_NAME", "value": str(experiment_name)},
                     {"name": "MLFLOW_MODEL_NAME", "value": str(artifact_name)},
                     # MinIO settings
-                    {"name": "MINIO_ENDPOINT", "value": "http://minio-service.kubeflow:9000"},
+                    {"name": "MLFLOW_S3_ENDPOINT_URL", "value": "http://minio-service.kubeflow:9000"},
                     # MinIO credentials from secret
                     {
                         "name": "AWS_ACCESS_KEY_ID",

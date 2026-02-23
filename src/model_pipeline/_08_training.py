@@ -98,7 +98,7 @@ def training_data(
     # Note: Artifact URIs are folders, actual files are inside
     print(f"Checking file path to download from local or minio....")
     print('original_train_path: ', train_path)
-    local_train = download_local_or_minio(train_path + "/06_preprocess_train_df.csv") # local use "06_preprocess_train_df.csv"
+    local_train = download_local_or_minio(train_path + "/train.csv") # local use "06_preprocess_train_df.csv"
 
     print("original preprocess path: ", preprocessor_path)
     local_preprocessor = download_local_or_minio(preprocessor_path + "/preprocessor.pkl")

@@ -9,7 +9,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 KSERVE_URL = os.environ.get("KSERVE_URL", "http://localhost:7070/v1/models/employee_attrition_prediction:predict")
-MLFLOW_TRACKING_URI = "http://localhost:5000"
+MLFLOW_TRACKING_URI = os.environ.get("MLFLOW_TRACKING_URI", "http://localhost:5000")
+MLFLOW_EXPERIMENT_NAME = os.environ.get("MLFLOW_EXPERIMENT_NAME", "employee-attrition-v1")
 
 
 app = Flask(__name__)
@@ -27,8 +28,8 @@ def predict():
     print('incoming-data: ', data)
 
     registry = MLflowRegistry(
-        tracking_uri="http://localhost:5000",
-        experiment_name="employee-attrition-v1"
+        tracking_uri=MLFLOW_TRACKING_URI,
+        experiment_name=MLFLOW_EXPERIMENT_NAME
     )
 
     try:

@@ -29,13 +29,13 @@ def full_pipeline(
     cpu: str = "200m",
     memory: str = "512Mi",
     tracking_uri: str = "http://mlflow.mlflow.svc.cluster.local:80",
-    experiment_name: str = "employee-attrition-v3",
+    experiment_name: str = "employee-attrition-v1",
     artifact_name: str = "employee-attrition-model",
     registry_name: str = "register-employee-attrition-model",
     recall_threshold: float = 0.65,
     minio_endpoint: str = "http://minio-service.kubeflow:9000",
-    minio_access_key: str = "<minio-access-key>", #minio
-    minio_secret_key: str = "<minio-secret-key>", #minio123
+    minio_access_key: str = "<minio-secret>",
+    minio_secret_key: str = "<minio-access>",
 ):
     # data pipeline
     # -----------------------------------------------------
@@ -114,7 +114,10 @@ def full_pipeline(
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,
         artifact_name=artifact_name,
-        mlflow_metadata=tuning.outputs["mlflow_metadata"]
+        mlflow_metadata=tuning.outputs["mlflow_metadata"],
+        minio_endpoint=minio_endpoint,
+        minio_access_key=minio_access_key,
+        minio_secret_key=minio_secret_key,
     ).after(eval)
     kubernetes.set_image_pull_policy(reg, "Always")
 

@@ -9,10 +9,19 @@ def register_model_component(
     tracking_uri: str,
     experiment_name: str,
     artifact_name: str,
-    mlflow_metadata: str
+    mlflow_metadata: str,
+    minio_endpoint: str,
+    minio_access_key: str,
+    minio_secret_key: str,
 ):
     import os
     from src.model_pipeline._10_registry import register_model_to_mlflow, promote_to_production
+
+    # Must be set BEFORE any feast/pyarrow/boto3 imports
+    os.environ["AWS_ACCESS_KEY_ID"] = minio_access_key
+    os.environ["AWS_SECRET_ACCESS_KEY"] = minio_secret_key
+    os.environ["AWS_DEFAULT_REGION"] = "us-east-1"          # dummy, but required
+    os.environ["MLFLOW_S3_ENDPOINT_URL"] = minio_endpoint
 
     registered_model, metrics = register_model_to_mlflow(    
         registry_name=registry_name, 

@@ -24,7 +24,7 @@ def evaluation_component(
     os.environ["AWS_ACCESS_KEY_ID"] = minio_access_key
     os.environ["AWS_SECRET_ACCESS_KEY"] = minio_secret_key
     os.environ["AWS_DEFAULT_REGION"] = "us-east-1"          # dummy, but required
-    os.environ["AWS_S3_ENDPOINT"] = minio_endpoint
+    os.environ["MLFLOW_S3_ENDPOINT_URL"] = minio_endpoint
 
     metrics = evaluate_data(
         test_path=test_path, 

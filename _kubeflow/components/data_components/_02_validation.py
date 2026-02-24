@@ -2,7 +2,7 @@
 from kfp.dsl import component, Input, Output, Dataset
 
 @component(
-    base_image="sandy345/kubeflow-employee-attrition:v1"
+    base_image="sandy345/kubeflow-employee-attrition:latest"
 )
 def validation_component(
     input_data: Input[Dataset], 

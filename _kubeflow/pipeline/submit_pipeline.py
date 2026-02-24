@@ -8,7 +8,7 @@ load_dotenv()
 PIPELINE_ENDPOINT = os.environ.get("PIPELINE_ENDPOINT", "http://localhost:4040")
 print('----- pipeline endpoint ----: ', PIPELINE_ENDPOINT)
 
-EXPERIMENT_NAME = "main-branch-attrition-pipeline"
+EXPERIMENT_NAME = "dev-1-branch-attrition-pipeline"
 
 def submit_pipeline():
     client = kfp.Client(host=PIPELINE_ENDPOINT)

@@ -2,7 +2,7 @@ from kfp import dsl
 from kfp.dsl import Input, Output, OutputPath, Model, Dataset
 
 @dsl.component(
-    base_image="sandy345/kubeflow-employee-attrition:v1"
+    base_image="sandy345/kubeflow-employee-attrition:latest"
 )
 def tuning_component(
     train_data: Input[Dataset],

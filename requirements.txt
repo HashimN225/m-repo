@@ -12,6 +12,7 @@ python-dotenv
 kfp
 kfp-kubernetes
 kubernetes
+kubeflow
 kubeflow-training
 
 mlflow

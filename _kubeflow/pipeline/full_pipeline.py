@@ -72,7 +72,7 @@ def full_pipeline(
 
     # trainer job - kubeflow trainer
     train_job = trainer_model_component(
-        job_name=f"attrition-trainer-job-{uuid.uuid4().hex[:4]}",
+        # job_name=f"attrition-trainer-job-{uuid.uuid4().hex[:4]}",
         cpu=cpu,
         memory=memory,
         train_path=preprocess.outputs['train_data'],

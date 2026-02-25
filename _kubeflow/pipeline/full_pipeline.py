@@ -16,7 +16,7 @@ from _kubeflow.components.model_components._06_tuning import tuning_component
 from _kubeflow.components.model_components._09_register import register_model_component
 
 # util
-from _kubeflow.components.util.wait_job import wait_for_training
+# from _kubeflow.components.util.wait_job import wait_for_training
 
 
 @dsl.pipeline( 
@@ -25,7 +25,7 @@ from _kubeflow.components.util.wait_job import wait_for_training
 )
 def full_pipeline(
     namespace: str = "kubeflow",
-    trainer_image: str = "sandy345/kubeflow-employee-attrition:latest",
+    # trainer_image: str = "sandy345/kubeflow-employee-attrition:latest",
     cpu: str = "200m",
     memory: str = "512Mi",
     tracking_uri: str = "http://mlflow.mlflow.svc.cluster.local:80",
@@ -71,10 +71,8 @@ def full_pipeline(
 
 
     # trainer job - kubeflow trainer
-    job = trainer_model_component(
+    train_job = trainer_model_component(
         job_name=f"attrition-trainer-job-{uuid.uuid4().hex[:4]}",
-        namespace=namespace,
-        image=trainer_image,
         cpu=cpu,
         memory=memory,
         train_path=preprocess.outputs['train_data'],
@@ -88,14 +86,14 @@ def full_pipeline(
         minio_access_key=minio_access_key,
         minio_secret_key=minio_secret_key,
     )
-    kubernetes.set_image_pull_policy(job, "Always")
+    kubernetes.set_image_pull_policy(train_job, "Always")
 
 
-    wait = wait_for_training(
-        job_name=job.outputs['job_output'],
-        namespace=namespace
-    )
-    kubernetes.set_image_pull_policy(wait, "Always")
+    # wait = wait_for_training(
+    #     job_name=train_job.outputs['job_output'],
+    #     namespace=namespace
+    # )
+    # kubernetes.set_image_pull_policy(wait, "Always")
 
 
     eval = evaluation_component(
@@ -107,7 +105,7 @@ def full_pipeline(
         minio_endpoint=minio_endpoint,
         minio_access_key=minio_access_key,
         minio_secret_key=minio_secret_key,
-    ).after(wait)
+    ).after(train_job)
     kubernetes.set_image_pull_policy(eval,"Always")
 
 

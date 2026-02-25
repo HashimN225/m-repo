@@ -6,8 +6,6 @@ from _kubeflow.pipeline.full_pipeline import full_pipeline
 load_dotenv()
 
 PIPELINE_ENDPOINT = os.environ.get("PIPELINE_ENDPOINT", "http://localhost:4040")
-print('----- pipeline endpoint ----: ', PIPELINE_ENDPOINT)
-
 EXPERIMENT_NAME = "dev-1-branch-attrition-pipeline"
 
 def submit_pipeline():
@@ -24,7 +22,7 @@ def submit_pipeline():
         pipeline_func=full_pipeline,
         arguments={},
         experiment_name=EXPERIMENT_NAME,
-        run_name="emp-attrition-pipeline"
+        run_name="dev-1-pipeline"
     )
 
     print('run-id: ', run.run_id)

@@ -3,11 +3,10 @@ from kfp.dsl import Input, Artifact, OutputPath
 
 
 @dsl.component(
-    base_image="sandy345/kubeflow-employee-attrition:v2"
+    base_image="sandy345/kubeflow-employee-attrition:latest"
 )
 def trainer_model_component(
     job_name: str,
-    namespace: str,
     cpu: str,
     memory: str,
     train_path: Input[Artifact],
@@ -22,9 +21,7 @@ def trainer_model_component(
     minio_access_key: str,
     minio_secret_key: str,
 ):
-    """Launches a Kubeflow TrainJob using the Trainer SDK."""
-    
-    import os
+
     from kubeflow.trainer import TrainerClient, CustomTrainer
 
     # ----------------------------------------------------------------
@@ -64,7 +61,7 @@ def trainer_model_component(
         import subprocess
 
         # Set env vars inside the training pod
-        os.environ["MLFLOW_TRACKING_URI"]   = tracking_uri
+        os.environ["MLFLOW_TRACKING_URI"]    = tracking_uri
         os.environ["MLFLOW_EXPERIMENT_NAME"] = experiment_name
         os.environ["MLFLOW_MODEL_NAME"]      = artifact_name
         os.environ["MINIO_ENDPOINT"]         = minio_endpoint
@@ -82,10 +79,9 @@ def trainer_model_component(
     # ----------------------------------------------------------------
     # Create and submit the TrainJob via SDK
     # ----------------------------------------------------------------
-    client = TrainerClient(namespace=namespace)
+    client = TrainerClient()
 
     job_id = client.train(
-        name=job_name,
         trainer=CustomTrainer(
             func=run_training,
             func_args={
@@ -109,16 +105,16 @@ def trainer_model_component(
     )
 
     print(f"Created TrainJob: {job_id}")
+
+    for line in client.get_job_logs(job_id):
+        print(line)
     
-    # Write job name to output
+
+    # ----------------------------------------------------------------
+    # Wait for completion (unlike your original code which didn't wait)
+    # ----------------------------------------------------------------
+    client.wait_for_job_status(job_id)
+    print(f"TrainJob {job_id} completed!")
+
     with open(job_output, "w") as f:
-        f.write(job_name)
-
-    # # ----------------------------------------------------------------
-    # # Wait for completion (unlike your original code which didn't wait)
-    # # ----------------------------------------------------------------
-    # client.wait_for_job_status(job_id)
-    # print(f"TrainJob {job_id} completed!")
-
-    # with open(job_output, "w") as f:
-    #     f.write(job_id)
+        f.write(job_id)

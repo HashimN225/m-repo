@@ -8,6 +8,8 @@ venv/
 */*/__pycache__
 */*/*/__pycache__
 /datasets/data-pipeline
+/datasets/text.csv
+/pipeline_save_to_s3_with_env.yaml
 
 /test.py
 
@@ -15,3 +17,5 @@ venv/
 
 /deploy_kserve
 /_kubeflow/components/model_components/_7_*.py
+
+/frontend/custom_app.py

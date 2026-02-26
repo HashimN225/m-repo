@@ -12,7 +12,7 @@ def eda_data(df_path: str) -> pd.DataFrame:
 
     # Distribution of Age
     plt.figure(figsize=(8, 6))
-    sns.histplot(df['Age'], bins=30, kde=True)
+    sns.histplot(df['age'], bins=30, kde=True)
     plt.title('Age Distribution')
     plt.xlabel('Age')
     plt.ylabel('Frequency')
@@ -20,7 +20,7 @@ def eda_data(df_path: str) -> pd.DataFrame:
 
     # Attrition count plot
     plt.figure(figsize=(6, 4))
-    sns.countplot(x='Attrition', data=df)
+    sns.countplot(x='attrition', data=df)
     plt.title('Attrition Count')
     plt.xlabel('Attrition')
     plt.ylabel('Count')
@@ -28,7 +28,7 @@ def eda_data(df_path: str) -> pd.DataFrame:
 
     # Monthly Income vs Job Level
     plt.figure(figsize=(10, 6))
-    sns.boxplot(x='Job Level', y='Monthly Income', data=df)
+    sns.boxplot(x='job_level', y='monthly_income', data=df)
     plt.title('Monthly Income by Job Level')
     plt.xlabel('Job Level')
     plt.ylabel('Monthly Income')

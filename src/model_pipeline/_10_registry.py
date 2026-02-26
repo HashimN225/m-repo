@@ -65,9 +65,9 @@ if __name__ == "__main__":
 
     BASE_DIR = Path(__file__).resolve().parents[2]
     ARTIFACTS_PATH = BASE_DIR / "artifacts"
-    MLFLOW_METADATA = ARTIFACTS_PATH / "mlflow_metadata.txt"
+    MLFLOW_RUN_ID = ARTIFACTS_PATH / "mlflow_run_id.txt"
 
-    with open(MLFLOW_METADATA, 'r') as f:
+    with open(MLFLOW_RUN_ID, 'r') as f:
         run_id = f.read().strip()
 
 

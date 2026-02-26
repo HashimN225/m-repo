@@ -7,9 +7,23 @@ def ingestion_component(
     output_data: Output[Dataset]
 ):
     import os
+    import io
+    import boto3
     from src.data_pipeline._01_ingestion import ingestion
 
-    df = ingestion()
+    s3 = boto3.client(
+        "s3",
+        endpoint_url="http://minio-service.kubeflow:9000",
+        aws_access_key_id="minio",
+        aws_secret_access_key="minio123",
+    )
+
+    obj = s3.get_object(Bucket="mlpipeline", Key="datasets/employee_attrition.csv")
+    data_bytes = obj["Body"].read()
+    print(data_bytes[:100])
+
+    # Pass a file-like buffer to ingestion so pd.read_csv works
+    df = ingestion(io.BytesIO(data_bytes))
 
     print(df.head(3))
 

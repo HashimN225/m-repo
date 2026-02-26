@@ -6,84 +6,105 @@ from kfp.dsl import Input, Artifact, OutputPath
     base_image="sandy345/kubeflow-employee-attrition:latest"
 )
 def trainer_model_component(
-    # job_name: str,
+    job_name: str,
+    namespace: str,
+    image: str,
     cpu: str,
     memory: str,
     train_path: Input[Artifact],
     preprocessor_model: Input[Artifact],
-    tuning_metadata: Input[Artifact],
-    mlflow_metadata: str,
+    best_parameters: Input[Artifact],
+    mlflow_run_id: str,
     job_output: OutputPath(str),
     tracking_uri: str,
     experiment_name: str,
     artifact_name: str,
-    minio_endpoint: str,
-    minio_access_key: str,
-    minio_secret_key: str,
 ):
-
-    from kubeflow.trainer import TrainerClient, CustomTrainer
-
-    def run_training(
-        train_uri: str,
-        preproc_uri: str,
-        best_params_uri: str,
-        mlflow_run_id: str,
-    ):
-        import os
-        import subprocess
-
-        subprocess.run([
-            "python", "-m", "src.model_pipeline._08_training",
-            "--train_path",        train_uri,
-            "--preprocessor_path", preproc_uri,
-            "--best_params_path",  best_params_uri,
-            "--mlflow_run_id",     mlflow_run_id,
-        ], check=True)
-
-    # ----------------------------------------------------------------
-    # Create and submit the TrainJob via SDK
-    # ----------------------------------------------------------------
-    client = TrainerClient()
-
-    job_id = client.train(
-        runtime="torch-distributed",
-        trainer=CustomTrainer(
-            image="sandy345/kubeflow-employee-attrition:latest",
-            func=run_training,
-            func_args={
-                "train_uri":        train_path.uri,
-                "preproc_uri":      preprocessor_model.uri,
-                "best_params_uri":  tuning_metadata.uri,
-                "mlflow_run_id":    mlflow_metadata,
-                "tracking_uri":     tracking_uri,
-                "experiment_name":  experiment_name,
-                "artifact_name":    artifact_name,
-            },
-            num_nodes=1,
-            resources_per_node={
-                "cpu":    cpu,
-                "memory": memory,
-            },
-            env={
-                "MLFLOW_TRACKING_URI":   tracking_uri,
-                "MLFLOW_EXPERIMENT_NAME": experiment_name,
-                "MLFLOW_MODEL_NAME":     artifact_name,
-                "MINIO_ENDPOINT":        minio_endpoint,
-                "AWS_ACCESS_KEY_ID":     minio_access_key,
-                "AWS_SECRET_ACCESS_KEY": minio_secret_key,
-            }
-        ),
-    )
-
-    print(f"Created TrainJob: {job_id}")
-
-    for line in client.get_job_logs(job_id):
-        print(line)
-
-    print(f"TrainJob {job_id} completed!")  
+    from kubernetes import client, config
     
-    # client.wait_for_job_status(job_id)
-
+    # Load in-cluster config
+    config.load_incluster_config()
+    
+    # Create custom objects API
+    api = client.CustomObjectsApi()
+    
+    # TrainJob specification with MinIO credentials
+    train_job = {
+        "apiVersion": "trainer.kubeflow.org/v1alpha1",
+        "kind": "TrainJob",
+        "metadata": {
+            "name": job_name,
+            "namespace": namespace
+        },
+        "spec": {
+            "suspend": False,
+            "runtimeRef": {
+                "apiGroup": "trainer.kubeflow.org",
+                "kind": "ClusterTrainingRuntime",
+                "name": "torch-distributed"
+            },
+            "trainer": {
+                "image": image,
+                "command": ["python", "-m", "src.model_pipeline._08_training"],
+                "args": [
+                    "--train_path", train_path.uri,
+                    "--preprocessor_path", preprocessor_model.uri,
+                    "--best_params_path", best_parameters.uri,
+                    "--mlflow_run_id", mlflow_run_id,
+                ],
+                "numNodes": 1,
+                "resourcesPerNode": {
+                    "requests": {
+                        "cpu": cpu,
+                        "memory": memory
+                    },
+                    "limits": {
+                        "cpu": cpu,
+                        "memory": memory
+                    }
+                },
+                "env": [
+                    # MLflow settings
+                    {"name": "MLFLOW_TRACKING_URI", "value": str(tracking_uri)},
+                    {"name": "MLFLOW_EXPERIMENT_NAME", "value": str(experiment_name)},
+                    {"name": "MLFLOW_MODEL_NAME", "value": str(artifact_name)},
+                    # MinIO settings
+                    {"name": "MLFLOW_S3_ENDPOINT_URL", "value": "http://minio-service.kubeflow:9000"},
+                    # MinIO credentials from secret
+                    {
+                        "name": "AWS_ACCESS_KEY_ID",
+                        "valueFrom": {
+                            "secretKeyRef": {
+                                "name": "mlpipeline-minio-artifact",
+                                "key": "accesskey"
+                            }
+                        }
+                    },
+                    {
+                        "name": "AWS_SECRET_ACCESS_KEY",
+                        "valueFrom": {
+                            "secretKeyRef": {
+                                "name": "mlpipeline-minio-artifact",
+                                "key": "secretkey"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    }
+    
+    # Create the TrainJob
+    api.create_namespaced_custom_object(
+        group="trainer.kubeflow.org",
+        version="v1alpha1",
+        namespace=namespace,
+        plural="trainjobs",
+        body=train_job
+    )
+    
+    print(f"Created TrainJob: {job_name}")
+    
+    # Write job name to output
     with open(job_output, "w") as f:
-        f.write(job_id)
+        f.write(job_name)

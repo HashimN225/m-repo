@@ -109,8 +109,8 @@ def training_data(
     # Load data
     print("\nLoading training data...")
     df = pd.read_csv(local_train)
-    X_train = df.drop(columns=['Attrition'])
-    y_train = df['Attrition']
+    X_train = df.drop(columns=['attrition'])
+    y_train = df['attrition']
     print(f"Training data shape: {X_train.shape}")
     
     # Load parameters
@@ -173,6 +173,13 @@ def training_data(
 # Support both direct execution and module execution
 if __name__ == "__main__":
     from pathlib import Path 
+
+    BASE_DIR = Path(__file__).resolve().parents[2]
+    ARTIFACTS_PATH = BASE_DIR / "artifacts"
+    MLFLOW_RUN_ID = ARTIFACTS_PATH / "mlflow_run_id.txt"  
+
+    with open(MLFLOW_RUN_ID, "r") as f:
+        mlflow_run_id = f.read().strip()
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--train_path", required=True)

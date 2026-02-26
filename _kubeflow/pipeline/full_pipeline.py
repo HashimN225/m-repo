@@ -16,7 +16,7 @@ from _kubeflow.components.model_components._06_tuning import tuning_component
 from _kubeflow.components.model_components._09_register import register_model_component
 
 # util
-# from _kubeflow.components.util.wait_job import wait_for_training
+from _kubeflow.components.util.wait_job import wait_for_training
 
 
 @dsl.pipeline( 
@@ -25,7 +25,7 @@ from _kubeflow.components.model_components._09_register import register_model_co
 )
 def full_pipeline(
     namespace: str = "kubeflow",
-    # trainer_image: str = "sandy345/kubeflow-employee-attrition:latest",
+    trainer_image: str = "sandy345/kubeflow-employee-attrition:latest",
     cpu: str = "200m",
     memory: str = "512Mi",
     tracking_uri: str = "http://mlflow.mlflow.svc.cluster.local:80",
@@ -72,13 +72,15 @@ def full_pipeline(
 
     # trainer job - kubeflow trainer
     train_job = trainer_model_component(
-        # job_name=f"attrition-trainer-job-{uuid.uuid4().hex[:4]}",
+        job_name=f"attrition-trainer-job-{uuid.uuid4().hex[:4]}",
+        namespace=namespace,
+        image=trainer_image,
         cpu=cpu,
         memory=memory,
         train_path=preprocess.outputs['train_data'],
         preprocessor_model=preprocess.outputs['preprocessor_model'],
-        tuning_metadata=tuning.outputs['tuning_metadata'],
-        mlflow_metadata=tuning.outputs["mlflow_metadata"],
+        best_parameters=tuning.outputs['best_parameters'],
+        mlflow_run_id=tuning.outputs["mlflow_run_id"],
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,
         artifact_name=artifact_name,
@@ -89,11 +91,11 @@ def full_pipeline(
     kubernetes.set_image_pull_policy(train_job, "Always")
 
 
-    # wait = wait_for_training(
-    #     job_name=train_job.outputs['job_output'],
-    #     namespace=namespace
-    # )
-    # kubernetes.set_image_pull_policy(wait, "Always")
+    wait = wait_for_training(
+        job_name=train_job.outputs['job_output'],
+        namespace=namespace
+    )
+    kubernetes.set_image_pull_policy(wait, "Always")
 
 
     eval = evaluation_component(
@@ -101,7 +103,7 @@ def full_pipeline(
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,
         artifact_name=artifact_name,
-        mlflow_metadata=tuning.outputs["mlflow_metadata"],
+        mlflow_run_id=tuning.outputs["mlflow_run_id"],
         minio_endpoint=minio_endpoint,
         minio_access_key=minio_access_key,
         minio_secret_key=minio_secret_key,
@@ -115,7 +117,7 @@ def full_pipeline(
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,
         artifact_name=artifact_name,
-        mlflow_metadata=tuning.outputs["mlflow_metadata"],
+        mlflow_run_id=tuning.outputs["mlflow_run_id"],
         minio_endpoint=minio_endpoint,
         minio_access_key=minio_access_key,
         minio_secret_key=minio_secret_key,

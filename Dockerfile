@@ -6,14 +6,17 @@ RUN apt-get update && apt-get install -y git && apt-get clean
 # Set working directory
 WORKDIR /app
 
-# Copy entire project
-COPY . /app
+# Copy dependency files first (better layer caching)
+COPY requirements.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache -r requirements.txt
+# Copy setup.py
+COPY setup.py .          
+
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy entire project
+COPY src/ ./src/
 
 # Install your project as a package
 RUN pip install --no-cache-dir .
-
-# # Default command (overridden by Kubeflow Trainer)
-# CMD ["python" , "-m", "src.model_pipeline._07_training"]

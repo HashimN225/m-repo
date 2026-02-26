@@ -88,6 +88,11 @@ class MLflowRegistry:
         return mlflow.sklearn.load_model(model_uri)
 
 
+    def load_registered_model(self, model_name: str, version: int):
+        model_uri = f"models:/{model_name}/{version}"
+        return mlflow.sklearn.load_model(model_uri)
+
+
     def register_model(self, run_id: str, artifact_name: str, registry_name: str):
         # model_uri = f"runs:/{metadata['run_id']}/{metadata['artifact_name']}"
         model_uri = f"runs:/{run_id}/{artifact_name}"
@@ -144,40 +149,4 @@ class MLflowRegistry:
         run = self.client.get_run(run_id)
         metrics = run.data.metrics
         return metrics
-
-
-    # can remove
-    def load_features_from_mlflow(self):
-        runs = mlflow.search_runs(
-            filter_string="tags.artifact_name = 'employee-attrition-model'",
-            order_by=["start_time DESC"],
-            max_results=1,
-        )
-        run_id = runs.iloc[0].run_id
-
-        local_path = mlflow.artifacts.download_artifacts(
-            run_id=run_id,
-            artifact_path="features_schema.json"
-        )
-
-        with open(local_path) as f:
-            features = json.load(f)
-        
-        return features['raw_features']
-
-
-    def load_features(self, run_id: str):
-        features_path = self.client.download_artifacts(
-            run_id=run_id,
-            path="feature_schema.json",
-        )
-
-        with open(features_path, 'r') as f:
-            features_list = json.load(f)
-        
-        return features_list['raw_features']
     
-
-    def load_registered_model(self, model_name: str, version: int):
-        model_uri = f"models:/{model_name}/{version}"
-        return mlflow.sklearn.load_model(model_uri)

@@ -1,13 +1,12 @@
 from kfp.dsl import component, Output, Dataset
 
 @component(
-    base_image="sandy345/kubeflow-employee-attrition:latest"
+    base_image="sandy345/kubeflow-employee-attrition:v1.0.0"
 )
 def ingestion_component(
     output_data: Output[Dataset]
 ):
     import os
-    import io
     import boto3
     from src.data_pipeline._01_ingestion import ingestion
 
@@ -18,14 +17,13 @@ def ingestion_component(
         aws_secret_access_key="minio123",
     )
 
-    obj = s3.get_object(Bucket="mlpipeline", Key="datasets/employee_attrition.csv")
-    data_bytes = obj["Body"].read()
-    print(data_bytes[:100])
+    tmp_path = "/tmp/employee_attrition.csv"
 
-    # Pass a file-like buffer to ingestion so pd.read_csv works
-    df = ingestion(io.BytesIO(data_bytes))
+    s3.download_file("mlpipeline", "datasets/employee_attrition.csv", tmp_path)
 
-    print(df.head(3))
+    df = ingestion(tmp_path)
+
+    print('component-output: ', df.head(3))
 
     # KFP v2: output_data.path is a DIRECTORY, not a file
     os.makedirs(output_data.path, exist_ok=True)

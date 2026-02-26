@@ -13,7 +13,7 @@ def save_dataset_to_s3():
 
     repo_url = "https://github.com/mlops-hub/kubeflow-training-pipeline.git"
     clone_dir = "/tmp/repo"
-    Repo.clone_from(repo_url, clone_dir)
+    Repo.clone_from(repo_url, clone_dir, branch="dev1")
 
     src_file = os.path.join(clone_dir, "datasets", "employee_attrition.csv")
     if not os.path.exists(src_file):
@@ -47,8 +47,8 @@ def dataset_pipeline():
     task = save_dataset_to_s3()
 
     # Your component env vars
-    task.set_env_variable("AWS_ACCESS_KEY_ID", "minio")
-    task.set_env_variable("AWS_SECRET_ACCESS_KEY", "minio123")
+    task.set_env_variable("AWS_ACCESS_KEY_ID", "<minio-access>")
+    task.set_env_variable("AWS_SECRET_ACCESS_KEY", "<minio-secret>")
     task.set_env_variable("AWS_REGION", "us-east-1")
     task.set_env_variable("AWS_DEFAULT_REGION", "us-east-1")
     task.set_env_variable("MLFLOW_S3_ENDPOINT_URL", "http://minio-service.kubeflow:9000")
@@ -65,6 +65,8 @@ def dataset_pipeline():
 
 
 if __name__ == "__main__":
+    import os
+
     pipeline_file = "pipeline_save_to_s3_with_env.yaml"
 
     compiler.Compiler().compile(
@@ -74,7 +76,7 @@ if __name__ == "__main__":
 
     print(f"Compiled {pipeline_file}")
 
-    KFP_HOST = "http://143.244.129.206:31621"
+    KFP_HOST = os.environ["KFP_URL"]
     client = Client(host=KFP_HOST, namespace="kubeflow")
 
     client.create_run_from_pipeline_package(

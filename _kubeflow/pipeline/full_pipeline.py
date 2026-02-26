@@ -25,7 +25,7 @@ from _kubeflow.components.util.wait_job import wait_for_training
 )
 def full_pipeline(
     namespace: str = "kubeflow",
-    trainer_image: str = "sandy345/kubeflow-employee-attrition:latest",
+    trainer_image: str = "sandy345/kubeflow-employee-attrition:v1.0.0",
     cpu: str = "200m",
     memory: str = "512Mi",
     tracking_uri: str = "http://mlflow.mlflow.svc.cluster.local:80",
@@ -40,6 +40,8 @@ def full_pipeline(
     # data pipeline
     # -----------------------------------------------------
     ingest = ingestion_component()
+    ingest.set_caching_options(False)
+
     validate = validation_component(
         input_data=ingest.outputs['output_data']
     )
@@ -88,6 +90,7 @@ def full_pipeline(
         minio_access_key=minio_access_key,
         minio_secret_key=minio_secret_key,
     )
+    train_job.set_caching_options(False)
     kubernetes.set_image_pull_policy(train_job, "Always")
 
 

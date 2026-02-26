@@ -3,7 +3,7 @@ from kfp.dsl import Input, Artifact, OutputPath
 
 
 @dsl.component(
-    base_image="sandy345/kubeflow-employee-attrition:latest"
+    base_image="sandy345/kubeflow-employee-attrition:v1.0.0"
 )
 def trainer_model_component(
     job_name: str,

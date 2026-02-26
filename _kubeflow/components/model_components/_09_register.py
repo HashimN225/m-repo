@@ -1,7 +1,7 @@
 from kfp.dsl import component, InputPath
 
 @component(
-    base_image="sandy345/kubeflow-employee-attrition:latest"
+    base_image="sandy345/kubeflow-employee-attrition:v1.0.0"
 )
 def register_model_component(
     registry_name: str, 

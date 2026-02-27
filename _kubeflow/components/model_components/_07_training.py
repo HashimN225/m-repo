@@ -53,7 +53,7 @@ def trainer_model_component(
                 "numNodes": 1,
                 "resourcesPerNode": {
                     "requests": {
-                        "cpu": "200m",
+                        "cpu": "500m",
                         "memory": "256Mi"
                     },
                     "limits": {

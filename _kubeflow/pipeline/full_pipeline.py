@@ -81,9 +81,6 @@ def full_pipeline(
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,
         artifact_name=artifact_name,
-        minio_endpoint=minio_endpoint,
-        minio_access_key=minio_access_key,
-        minio_secret_key=minio_secret_key,
     )
     train_job.set_caching_options(False)
     kubernetes.set_image_pull_policy(train_job, "Always")
@@ -92,7 +89,7 @@ def full_pipeline(
     wait = wait_for_training(
         job_name=train_job.outputs['job_output'],
         namespace=namespace
-    )
+    ).after(train_job)
     kubernetes.set_image_pull_policy(wait, "Always")
 
 
@@ -105,7 +102,7 @@ def full_pipeline(
         minio_endpoint=minio_endpoint,
         minio_access_key=minio_access_key,
         minio_secret_key=minio_secret_key,
-    ).after(train_job)
+    ).after(wait)
     kubernetes.set_image_pull_policy(eval,"Always")
 
 

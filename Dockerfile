@@ -6,17 +6,11 @@ RUN apt-get update && apt-get install -y git && apt-get clean
 # Set working directory
 WORKDIR /app
 
-# Copy dependency files first (better layer caching)
-COPY requirements.txt .
-
-# Copy setup.py
-COPY setup.py .          
+# Copy entire project
+COPY . .
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy entire project
-COPY . ./app
 
 # Install your project as a package
 RUN pip install --no-cache-dir .

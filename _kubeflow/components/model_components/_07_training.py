@@ -9,8 +9,6 @@ def trainer_model_component(
     job_name: str,
     namespace: str,
     image: str,
-    cpu: str,
-    memory: str,
     train_path: Input[Artifact],
     preprocessor_model: Input[Artifact],
     best_parameters: Input[Artifact],
@@ -55,12 +53,12 @@ def trainer_model_component(
                 "numNodes": 1,
                 "resourcesPerNode": {
                     "requests": {
-                        "cpu": cpu,
-                        "memory": memory
+                        "cpu": "200m",
+                        "memory": "256Mi"
                     },
                     "limits": {
-                        "cpu": cpu,
-                        "memory": memory
+                        "cpu": "500m",
+                        "memory": "512Mi"
                     }
                 },
                 "env": [

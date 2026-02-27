@@ -22,7 +22,7 @@ def submit_pipeline():
         pipeline_func=full_pipeline,
         arguments={},
         experiment_name=EXPERIMENT_NAME,
-        run_name="run-pipeline-1"
+        run_name="run-pipeline-2"
     )
 
     print('run-id: ', run.run_id)

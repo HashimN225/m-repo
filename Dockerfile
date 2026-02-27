@@ -16,7 +16,7 @@ COPY setup.py .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy entire project
-COPY src/ ./src/
+COPY . ./app
 
 # Install your project as a package
 RUN pip install --no-cache-dir .

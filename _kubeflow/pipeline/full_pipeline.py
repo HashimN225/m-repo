@@ -26,8 +26,6 @@ from _kubeflow.components.util.wait_job import wait_for_training
 def full_pipeline(
     namespace: str = "kubeflow",
     trainer_image: str = "sandy345/kubeflow-employee-attrition:v1.0.0",
-    cpu: str = "200m",
-    memory: str = "512Mi",
     tracking_uri: str = "http://mlflow.mlflow.svc.cluster.local:80",
     experiment_name: str = "employee-attrition-v1",
     artifact_name: str = "employee-attrition-model",
@@ -40,7 +38,6 @@ def full_pipeline(
     # data pipeline
     # -----------------------------------------------------
     ingest = ingestion_component()
-    ingest.set_caching_options(False)
 
     validate = validation_component(
         input_data=ingest.outputs['output_data']
@@ -77,8 +74,6 @@ def full_pipeline(
         job_name=f"attrition-trainer-job-{uuid.uuid4().hex[:4]}",
         namespace=namespace,
         image=trainer_image,
-        cpu=cpu,
-        memory=memory,
         train_path=preprocess.outputs['train_data'],
         preprocessor_model=preprocess.outputs['preprocessor_model'],
         best_parameters=tuning.outputs['best_parameters'],

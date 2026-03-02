@@ -2,7 +2,7 @@ from kfp import dsl
 from kfp.dsl import component, Input, Output, Dataset
 
 @component(
-    base_image="sandy345/kubeflow-employee-attrition:v1"
+    base_image="<docker-repo:tag>"
 )
 def feature_engg_component(
     input_data: Input[Dataset], 

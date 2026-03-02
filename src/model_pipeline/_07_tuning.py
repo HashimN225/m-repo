@@ -15,11 +15,11 @@ def tuning_data(train_path: str, test_path: str, preprocess_path: str, tracking_
     df_train = pd.read_csv(train_path)
     df_test = pd.read_csv(test_path)
 
-    X_train = df_train.drop(columns=['Attrition'])
-    y_train = df_train['Attrition']
+    X_train = df_train.drop(columns=['attrition'])
+    y_train = df_train['attrition']
 
-    X_test = df_test.drop(columns=['Attrition'])
-    y_test = df_test['Attrition']
+    X_test = df_test.drop(columns=['attrition'])
+    y_test = df_test['attrition']
 
     # load preprocessor
     preprocessor = joblib.load(preprocess_path)
@@ -101,8 +101,8 @@ if __name__ == "__main__":
 
     ARTIFACTS_PATH = BASE_DIR / "artifacts"
     PREPROCESSOR_PATH = ARTIFACTS_PATH / "preprocessor.pkl"
-    TUNING_METADATA = ARTIFACTS_PATH / "tuning_metadata.json"
-    MLFLOW_METADATA = ARTIFACTS_PATH / "mlflow_metadata.txt"  
+    TUNING_METADATA = ARTIFACTS_PATH / "best_parameters.json"
+    MLFLOW_RUN_ID = ARTIFACTS_PATH / "mlflow_run_id.txt"  
 
     run_id, overall_parameters = tuning_data(
         train_path=TRAIN_PATH, 
@@ -115,5 +115,5 @@ if __name__ == "__main__":
     with open(TUNING_METADATA, 'w') as f:
         json.dump(overall_parameters, f)
 
-    with open(MLFLOW_METADATA, "w") as f:
+    with open(MLFLOW_RUN_ID, "w") as f:
         f.write(run_id)

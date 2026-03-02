@@ -1,22 +1,18 @@
 from kfp import dsl
-from kfp.dsl import Input, Artifact, InputPath, OutputPath
-from kubernetes import client as k8s_client
-from kubernetes.client import V1EnvVar, V1EnvVarSource, V1SecretKeySelector
+from kfp.dsl import Input, Artifact, OutputPath
 
 
 @dsl.component(
-    base_image="sandy345/kubeflow-employee-attrition:v1"
+    base_image="<docker-repo:tag>"
 )
 def trainer_model_component(
     job_name: str,
     namespace: str,
     image: str,
-    cpu: str,
-    memory: str,
     train_path: Input[Artifact],
     preprocessor_model: Input[Artifact],
-    tuning_metadata: Input[Artifact],
-    mlflow_metadata: str,
+    best_parameters: Input[Artifact],
+    mlflow_run_id: str,
     job_output: OutputPath(str),
     tracking_uri: str,
     experiment_name: str,
@@ -51,18 +47,18 @@ def trainer_model_component(
                 "args": [
                     "--train_path", train_path.uri,
                     "--preprocessor_path", preprocessor_model.uri,
-                    "--best_params_path", tuning_metadata.uri,
-                    "--mlflow_run_id", mlflow_metadata,
+                    "--best_params_path", best_parameters.uri,
+                    "--mlflow_run_id", mlflow_run_id,
                 ],
                 "numNodes": 1,
                 "resourcesPerNode": {
                     "requests": {
-                        "cpu": cpu,
-                        "memory": memory
+                        "cpu": "500m",
+                        "memory": "256Mi"
                     },
                     "limits": {
-                        "cpu": cpu,
-                        "memory": memory
+                        "cpu": "500m",
+                        "memory": "512Mi"
                     }
                 },
                 "env": [

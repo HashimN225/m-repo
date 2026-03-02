@@ -3,16 +3,7 @@ document.getElementById('prediction-form').addEventListener('submit', async (e) 
 
     const formData = new FormData(e.target);
     const data = {};
-
     formData.forEach((val, key) => data[key] = Number(val));
-
-    const yearsAtCompany = data['Years at Company'];
-    const companyTenure = data['Company Tenure'];
-
-    data["RoleStagnationRatio"] = Number((yearsAtCompany / (companyTenure + 1)).toFixed(3));
-    data["TenureGap"] = Number((companyTenure - yearsAtCompany).toFixed(2));
-    data["EarlyCompanyTenureRisk"] = yearsAtCompany <= 2 ? 1 : 0;
-    data["LongTenureLowRoleRisk"] = (companyTenure > 5 && data["Job Level"] <= 2) ? 1 : 0;
 
     try {
         const response = await fetch('/predict', {
@@ -33,9 +24,6 @@ document.getElementById('prediction-form').addEventListener('submit', async (e) 
                 <h4 class="fw-bold ${result.prediction === 1 ? "text-danger" : "text-success"}">
                     ${result.prediction === 1 ? "Leave" : "Stay"}
                 </h4>
-                <hr/>
-                <h6 class="text-muted">Probability</h6>
-                <h4 class="text-danger fw-bold">${(result.probs * 100).toFixed(2)}%</h4>
             </div>
         `;
     } catch (error) {

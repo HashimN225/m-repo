@@ -1,7 +1,7 @@
 from kfp.dsl import component
 
 @component(
-    base_image="sandy345/kubeflow-employee-attrition:v1"
+    base_image="<docker-repo:tag>"
 )
 def wait_for_training(job_name: str, namespace: str):
     from kubernetes import client, config

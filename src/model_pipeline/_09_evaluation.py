@@ -20,8 +20,8 @@ def evaluate_data(test_path: str, tracking_uri: str, experiment_name: str, artif
         model = registry.load_model(run_id=mlflow_run_id, artifact_name=artifact_name)
 
         df_test = pd.read_csv(test_path)
-        X_test = df_test.drop(columns=['Attrition'])
-        y_test = df_test['Attrition']
+        X_test = df_test.drop(columns=['attrition'])
+        y_test = df_test['attrition']
 
         # predict
         y_pred = model.predict(X_test)
@@ -58,13 +58,6 @@ def evaluate_data(test_path: str, tracking_uri: str, experiment_name: str, artif
     }).sort_values(by='Abs_Coefficient', ascending=False)
     print(coef_df)
 
-    # plt.figure(figsize=(10,6))
-    # plt.barh(coef_df['Feature'], coef_df['Coefficient'])
-    # plt.gca().invert_yaxis()
-    # plt.xlabel("Coefficient")
-    # plt.title("Logistic Regression Feature Importance")
-    # plt.show()
-
     return metrics
 
 
@@ -77,9 +70,9 @@ if __name__ == "__main__":
     TEST_PATH = DATASET_PATH / "06_preprocess_test_df.csv"
 
     ARTIFACTS_PATH = BASE_DIR / "artifacts"
-    MLFLOW_METADATA = ARTIFACTS_PATH / "mlflow_metadata.txt"
+    MLFLOW_RUN_ID = ARTIFACTS_PATH / "mlflow_run_id.txt"
 
-    with open(MLFLOW_METADATA, 'r') as f:
+    with open(MLFLOW_RUN_ID, 'r') as f:
         run_id = f.read().strip()
 
     evaluate_data(

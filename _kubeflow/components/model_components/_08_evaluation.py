@@ -3,7 +3,7 @@ from kfp.dsl import component, Input, InputPath, Dataset
 
 
 @component(
-    base_image="sandy345/kubeflow-employee-attrition:v1.0.0"
+    base_image="<docker-repo:tag>"
 )
 def evaluation_component(
     test_data: Input[Dataset],

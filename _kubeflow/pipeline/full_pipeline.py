@@ -25,7 +25,7 @@ from _kubeflow.components.util.wait_job import wait_for_training
 )
 def full_pipeline(
     namespace: str = "kubeflow",
-    trainer_image: str = "sandy345/kubeflow-employee-attrition:v1.0.0",
+    trainer_image: str = "<docker-repo:tag>",
     tracking_uri: str = "http://mlflow.mlflow.svc.cluster.local:80",
     experiment_name: str = "employee-attrition-v1",
     artifact_name: str = "employee-attrition-model",

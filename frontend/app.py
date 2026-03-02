@@ -9,27 +9,27 @@ load_dotenv()
 
 KSERVE_URL = os.environ.get("KSERVE_URL", "http://localhost:7070/v1/models/employee_attrition_prediction:predict")
 
-# features schema data from mlflow
+# features schema data (snake_case to match training pipeline)
 features = [
-    "Years at Company",
-    "Performance Rating",
-    "Number of Promotions",
-    "Overtime",
-    "Education Level",
-    "Number of Dependents",
-    "Job Level",
-    "Company Size",
-    "Company Tenure",
-    "Remote Work",
-    "Company Reputation",
-    "OverallSatisfaction",
-    "Opportunities",
-    "AnnualIncome",
-    "AgeGroup",
-    "RoleStagnationRatio",
-    "TenureGap",
-    "EarlyCompanyTenureRisk",
-    "LongTenureLowRoleRisk"
+    "years_at_company",
+    "performance_rating",
+    "number_of_promotions",
+    "overtime",
+    "education_level",
+    "number_of_dependents",
+    "job_level",
+    "company_size",
+    "company_tenure",
+    "remote_work",
+    "company_reputation",
+    "overall_satisfaction",
+    "opportunities",
+    "annual_income",
+    "age_group",
+    "role_stagnation_ratio",
+    "tenure_gap",
+    "early_company_tenure_risk",
+    "long_tenure_low_role_risk",
 ]
 
 app = Flask(__name__)
@@ -46,15 +46,15 @@ def predict():
     data = request.get_json(force=True)
     print('incoming-data: ', data)
 
-    # Compute engineered features
-    years_at_company = data["Years at Company"]
-    company_tenure = data["Company Tenure"]
-    job_level = data["Job Level"]
+    # Compute engineered features (snake_case to match training pipeline)
+    years_at_company = data["years_at_company"]
+    company_tenure = data["company_tenure"]
+    job_level = data["job_level"]
 
-    data["RoleStagnationRatio"] = round(years_at_company / (company_tenure + 1), 3)
-    data["TenureGap"] = round(company_tenure - years_at_company, 2)
-    data["EarlyCompanyTenureRisk"] = 1 if years_at_company <= 2 else 0
-    data["LongTenureLowRoleRisk"] = 1 if (company_tenure > 5 and job_level <= 2) else 0
+    data["role_stagnation_ratio"] = round(years_at_company / (company_tenure + 1), 3)
+    data["tenure_gap"] = round(company_tenure - years_at_company, 2)
+    data["early_company_tenure_risk"] = 1 if years_at_company <= 2 else 0
+    data["long_tenure_low_role_risk"] = 1 if (company_tenure > 5 and job_level <= 2) else 0
 
 
     try:

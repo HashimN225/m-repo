@@ -2,7 +2,7 @@ from kfp import dsl
 from kfp.dsl import Input, Output, OutputPath, Model, Dataset
 
 @dsl.component(
-    base_image="sandy345/kubeflow-employee-attrition:v1.0.0"
+    base_image="<docker-repo:tag>"
 )
 def tuning_component(
     train_data: Input[Dataset],
@@ -21,7 +21,7 @@ def tuning_component(
     test_path = os.path.join(test_data.path, "test.csv")
     preprocessor_output = os.path.join(preprocessor_model.path, "preprocessor.pkl")
 
-    run_id, tuning_metadata_output = tuning_data(
+    run_id, best_parameters_output = tuning_data(
         train_path=train_path, 
         test_path=test_path, 
         preprocess_path=preprocessor_output,
@@ -32,7 +32,7 @@ def tuning_component(
     os.makedirs(best_parameters.path, exist_ok=True)
     tuning_file = os.path.join(best_parameters.path, "best_parameters.json")
     with open(tuning_file, 'w') as f:
-        json.dump(tuning_metadata_output, f)
+        json.dump(best_parameters_output, f)
 
 
     with open(mlflow_run_id, "w") as f:

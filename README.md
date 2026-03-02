@@ -187,14 +187,12 @@ employee-attrition-kubeflow/
 │   │   ├── _04_cleaning.py
 │   │   ├── _05_feature_engg.py
 │   │   ├── _06_preprocessing.py
-│   │   └── upload_dataset.py
 │   └── model_pipeline/
 │       ├── _07_tuning.py
 │       ├── _08_training.py
 │       ├── _09_evaluation.py
 │       └── _10_registry.py
 │
-├── src_s3/                             # S3-backed data pipeline
 ├── datasets/
 │   ├── employee_attrition.csv          # Main dataset (74,500 records)
 │   └── data-pipeline/                  # Intermediate processed datasets
@@ -209,7 +207,6 @@ employee-attrition-kubeflow/
 ├── notebook/
 ├── requirements.txt                    # Python dependencies
 ├── setup.py                            # Package setup
-├── test.py                             # Test suite
 ├── Dockerfile                          # Container image for components
 └── README.md
 ```
@@ -280,8 +277,8 @@ The end-to-end ML workflow is orchestrated through Kubeflow as containerized, re
 6. **06_tuning.py** - Hyperparameter optimization
    - Input: Training data from preprocessing
    - Output: Best hyperparameters, tuning report
-   - **Logged to MLflow**: Parameters, search space, CV scores
-   - Methods: GridSearchCV, RandomSearchCV
+   - **Logged to MLflow**: Best Parameters
+   - Methods: GridSearchCV
 
 7. **07_training.py** - Train classification models
    - Input: Preprocessed training data + tuned parameters
@@ -297,9 +294,6 @@ The end-to-end ML workflow is orchestrated through Kubeflow as containerized, re
    - Output: Evaluation report
    - **Logged to MLflow**:
      - Evaluation metrics (Accuracy, Precision, Recall, F1, AUC-ROC)
-     - Confusion matrix
-     - Feature importance
-     - Cross-validation scores
 
 9. **09_register.py** - Register best model in MLflow Registry
    - Input: Model artifacts + evaluation metrics
@@ -431,11 +425,8 @@ CONTAINER_IMAGE = "<registry>/employee-attrition:latest"
 #### Option A: Run the Full ML Pipeline with Kubeflow
 
 ```bash
-# Navigate to pipeline directory
-cd _kubeflow/pipeline
-
 # Submit pipeline to Kubeflow
-python submit_pipeline.py
+python -m _kubeflow.pipeline.submit_pipeline
 ```
 
 This will:
@@ -493,15 +484,56 @@ In the MLflow UI, you can:
 
 #### Step 8: Deploy Model with KServe (Optional)
 
+At root create `inference.yaml` file in server
+
 ```bash
-cd deploy_kserve
-
-# Deploy model from MLflow registry
-python deployment.py
-
-# Check deployment status
-kubectl get kserve -n kubeflow-user-example-com
+nano inference.yaml
 ```
+
+Write yaml script
+
+```yaml
+apiVersion: "serving.kserve.io/v1beta1"
+kind: "InferenceService"
+metadata:
+  name: "sklearn-employee-attrition"
+  namespace: "default"
+spec:
+  predictor:
+    serviceAccountName: kserve-minio-sa
+    sklearn:
+      storageUri: "s3://mlpipeline/mlflow-artifacts/<epxeriment-id>/models/<model-id>/artifacts/"
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+      env:
+        - name: MLFLOW_TRACKING_URI
+          value: "http://mlflow.mlflow.svc.cluster.local:80"
+        - name: MLFLOW_S3_ENDPOINT_URL
+          value: "http://minio-service.kubeflow.svc.cluster.local:9000"
+        - name: MLFLOW_S3_IGNORE_TLS
+          value: "true"
+        - name: AWS_DEFAULT_REGION
+          value: "us-east-1"
+        - name: AWS_ACCESS_KEY_ID
+          value: "<minio-access>"
+        - name: AWS_SECRET_ACCESS_KEY
+          value: "<minio123-secret>"
+```
+
+Apply KServe
+
+```bash
+kubectl apply -f inference.yaml
+```
+
+To test if service pod is running
+
+```bash
+kubectl get inferenceservices
+````
+**Note:** Test using curl or expsoe your Node to External IP port.
 
 ### Running the Frontend
 
@@ -516,18 +548,6 @@ python app.py
 
 **Note:** Ensure model artifacts are available locally before starting the frontend, or configure it to fetch from MLflow registry.
 
-
-
-## Usage
-
-### Running Online Predictions via Frontend
-
-The Flask web application provides a user-friendly interface for predictions:
-
-```bash
-cd frontend
-python app.py
-```
 
 Access at `http://localhost:5000` and input employee data to get attrition predictions.
 

@@ -92,6 +92,7 @@ def training_data(
     print(f"MLflow Run ID: {mlflow_run_id}")
     print(f"Tracking URI: {tracking_uri}")
     print(f"Experiment: {experiment_name}")
+    print("Training version: 2")
     print("=" * 50)
     
     # Download files from MinIO
@@ -104,12 +105,12 @@ def training_data(
     local_preprocessor = download_local_or_minio(preprocessor_path + "/preprocessor.pkl")
 
     print("original best params: ", best_params_path)
-    local_params = download_local_or_minio(best_params_path + "/tuning_metadata.json")
+    local_params = download_local_or_minio(best_params_path + "/best_parameters.json")
                                  
     # Load data
     print("\nLoading training data...")
     df = pd.read_csv(local_train)
-    X_train = df.drop(columns=['attrition'])
+    X_train = df.drop(columns=['employee_id', 'attrition'])
     y_train = df['attrition']
     print(f"Training data shape: {X_train.shape}")
     

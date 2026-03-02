@@ -101,7 +101,7 @@ if __name__ == "__main__":
 
     ARTIFACTS_PATH = BASE_DIR / "artifacts"
     PREPROCESSOR_PATH = ARTIFACTS_PATH / "preprocessor.pkl"
-    TUNING_METADATA = ARTIFACTS_PATH / "tuning_metadata.json"
+    TUNING_METADATA = ARTIFACTS_PATH / "best_parameters.json"
     MLFLOW_RUN_ID = ARTIFACTS_PATH / "mlflow_run_id.txt"  
 
     run_id, overall_parameters = tuning_data(

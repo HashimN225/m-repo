@@ -1,0 +1,17 @@
+MINIO_ENDPOINT=http://minio-service.kubeflow:9000
+MINIO_AWS_ACCESS_KEY=<minio-access>
+MINIO_AWS_SECRET_KEY=<minio-secret>
+
+# uploading dataset to minIO/S3
+KFP_URL=<http://host:port>  
+PIPELINE_ENDPOINT=<http://host:port> 
+
+MLFLOW_TRACKING_URI=<http://host:port> 
+MLFLOW_EXPERIMENT_NAME=employee-attrition-v1
+MLFLOW_MODEL_NAME=employee-attrition-model
+MLFLOW_REGISTER_MODEL_NAME=register-employee-attrition-model
+MLFLOW_TRACKING_INTERNAL_URI=http://mlflow.mlflow.svc.cluster.local:80
+
+KSERVE_URL=<http://host:port/v1/models/<kserve-name>:predict>
+
+DOCKER_IMAGE_NAME=<docker-repo:tag>

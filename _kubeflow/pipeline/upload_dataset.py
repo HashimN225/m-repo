@@ -13,7 +13,7 @@ def save_dataset_to_s3():
 
     repo_url = "https://github.com/mlops-hub/kubeflow-training-pipeline.git"
     clone_dir = "/tmp/repo"
-    Repo.clone_from(repo_url, clone_dir, branch="dev1")
+    Repo.clone_from(repo_url, clone_dir, branch="main")
 
     src_file = os.path.join(clone_dir, "datasets", "employee_attrition.csv")
     if not os.path.exists(src_file):

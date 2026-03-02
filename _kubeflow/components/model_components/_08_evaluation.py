@@ -3,9 +3,7 @@ from kfp.dsl import component, Input, InputPath, Dataset
 
 
 @component(
-    base_image="<docker-image>:tag"
-    # base_image="python:3.10",
-    # packages_to_install=['pandas', 'mlflow', 'scikit-learn', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
+    base_image="sandy345/kubeflow-pipeline:v1.0.0"
 )
 def evaluation_component(
     feast_repo_path: str,

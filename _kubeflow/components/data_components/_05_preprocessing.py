@@ -2,9 +2,7 @@ from kfp import dsl
 from kfp.dsl import component, Input, Output, Dataset, Model
 
 @component(
-    base_image="<docker-image>:tag"
-    # base_image="python:3.10",
-    # packages_to_install=['pandas', 'scikit-learn', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
+    base_image="sandy345/kubeflow-pipeline:v1.0.0"
 )
 def preprocessed_component(
     input_data: Input[Dataset],
@@ -12,7 +10,6 @@ def preprocessed_component(
     test_data: Output[Dataset],
     preprocessor_model: Output[Model],
     feast_data: Output[Dataset],
-    # feast_path_file: Output[Dataset] # get dynamic-id path file for model tuning, training etc..
 ):
     import os
     import joblib
@@ -29,7 +26,6 @@ def preprocessed_component(
     test_output_path = os.path.join(test_data.path, "test.csv")
     preprocessor_output_path = os.path.join(preprocessor_model.path, "preprocessor.pkl")
     feast_dataset_path = os.path.join(feast_data.path, "preprocessed_data.parquet")
-    # feast_path_txt = os.path.join(feast_path_file.path, "feast_data_path.txt")
 
 
     train_df, test_df, preprocessor_obj = preprocess_data(
@@ -42,15 +38,8 @@ def preprocessed_component(
     test_df.to_csv(test_output_path, index=False)
     joblib.dump(preprocessor_obj, preprocessor_output_path)
 
-    # save dynamic-id in minIO
-    # dynamic_feast_path = f"s3://mlpipeline/v2/artifacts{feast_dataset_path.split('/minio')[-1]}"
-    # print('dynamic-path-file: ', dynamic_feast_path)
-    # with open(feast_path_txt, 'w') as f:
-    #     f.write(dynamic_feast_path)
-
     print("Preprocessing completed.")
     print(f"Train data saved to: {train_output_path}")
     print(f"Test data saved to: {test_output_path}")
     print(f"Scaler saved to: {preprocessor_output_path}")
     print(f"Feast Parquet saved at: {feast_dataset_path}")
-    # print(f"Feast path saved: {feast_path_txt}")

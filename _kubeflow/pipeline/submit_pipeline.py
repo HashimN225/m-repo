@@ -8,7 +8,7 @@ load_dotenv()
 PIPELINE_ENDPOINT = os.environ.get("PIPELINE_ENDPOINT", "http://localhost:4040")
 print('----- pipeline endpoint ----: ', PIPELINE_ENDPOINT)
 
-EXPERIMENT_NAME = "emp-attrition-pipeline-v1"
+EXPERIMENT_NAME = "kubeflow-mlflow-feast-v1.0.0"
 
 def submit_pipeline():
     client = kfp.Client(host=PIPELINE_ENDPOINT)

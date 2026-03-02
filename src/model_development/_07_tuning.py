@@ -141,8 +141,8 @@ if __name__ == "__main__":
 
     ARTIFACTS_PATH = BASE_DIR / "artifacts"
     PREPROCESSOR_PATH = ARTIFACTS_PATH / "preprocessor.pkl"
-    TUNING_METADATA = ARTIFACTS_PATH / "tuning_metadata.json"
-    MLFLOW_METADATA = ARTIFACTS_PATH / "mlflow_metadata.txt"  
+    BEST_PARAMETERS = ARTIFACTS_PATH / "best_parameters.json"
+    MLFLOW_RUN_ID = ARTIFACTS_PATH / "mlflow_run_id.txt"  
 
     FEAST_DATA_DIR = BASE_DIR / "_feast" / "feature_repo"
 
@@ -155,8 +155,8 @@ if __name__ == "__main__":
         experiment_name = os.environ["MLFLOW_EXPERIMENT_NAME"],
     )
 
-    with open(TUNING_METADATA, 'w') as f:
+    with open(BEST_PARAMETERS, 'w') as f:
         json.dump(overall_parameters, f)
 
-    with open(MLFLOW_METADATA, "w") as f:
+    with open(MLFLOW_RUN_ID, "w") as f:
         f.write(run_id)

@@ -5,22 +5,18 @@ from kubernetes.client import V1EnvVar, V1EnvVarSource, V1SecretKeySelector
 
 
 @dsl.component(
-    base_image="<docker-image>:tag",
+    base_image="sandy345/kubeflow-pipeline:v1.0.0",
     packages_to_install=["kubernetes"]
-    # base_image="python:3.10",
-    # packages_to_install=["kubernetes", 'scikit-learn', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
 )
 def trainer_model_component(
     job_name: str,
     namespace: str,
     image: str,
-    cpu: str,
-    memory: str,
     feast_repo_path: str,
     train_path: Input[Artifact],
     preprocessor_model: Input[Artifact],
-    tuning_metadata: Input[Artifact],
-    mlflow_metadata: str,
+    best_parameters: Input[Artifact],
+    mlflow_run_id: str,
     job_output: OutputPath(str),
     tracking_uri: str,
     experiment_name: str,
@@ -58,18 +54,18 @@ def trainer_model_component(
                     "--feast_repo_path", feast_repo_path,
                     "--train_path", train_path.uri,
                     "--preprocessor_path", preprocessor_model.uri,
-                    "--best_params_path", tuning_metadata.uri,
-                    "--mlflow_run_id", mlflow_metadata,
+                    "--best_params_path", best_parameters.uri,
+                    "--mlflow_run_id", mlflow_run_id,
                 ],
                 "numNodes": 1,
                 "resourcesPerNode": {
                     "requests": {
-                        "cpu": cpu,
-                        "memory": memory
+                        "cpu": "500m",
+                        "memory": "256Mi",
                     },
                     "limits": {
-                        "cpu": cpu,
-                        "memory": memory
+                        "cpu": "500m",
+                        "memory": "512Mi",
                     }
                 },
                 "env": [

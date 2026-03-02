@@ -26,9 +26,7 @@ from _kubeflow.components.util.wait_job import wait_for_training
 )
 def full_pipeline(
     namespace: str = "kubeflow",
-    trainer_image: str = "<docker-image>:<tag>",
-    cpu: str = "200m",
-    memory: str = "512Mi",
+    trainer_image: str = "sandy345/kubeflow-pipeline:v1.0.0",
     tracking_uri: str = "http://mlflow.mlflow.svc.cluster.local:80",
     experiment_name: str = "employee-attrition",
     artifact_name: str = "employee-attrition-model",
@@ -66,7 +64,7 @@ def full_pipeline(
     # - preprocessor_model
     # - feast_data => output_parquet
 
-    # model pipeline
+    # Feast Setup
     # ----------------------------------------------------
     feast_sync = feast_sync_component(
         feast_data=preprocess.outputs['feast_data'],
@@ -76,7 +74,8 @@ def full_pipeline(
         minio_secret_key=minio_secret_key,
     )
     
-    
+    # model pipeline
+    # ----------------------------------------------------
     tuning = tuning_component(
         feast_repo_path=feast_repo_path,
         train_data=preprocess.outputs['train_data'],
@@ -98,13 +97,11 @@ def full_pipeline(
         job_name=f"attrition-trainer-job-{uuid.uuid4().hex[:4]}",
         namespace=namespace,
         image=trainer_image,
-        cpu=cpu,
-        memory=memory,
         feast_repo_path=feast_repo_path,
         train_path=preprocess.outputs['train_data'],
         preprocessor_model=preprocess.outputs['preprocessor_model'],
-        tuning_metadata=tuning.outputs['tuning_metadata'],
-        mlflow_metadata=tuning.outputs["mlflow_metadata"],
+        best_parameters=tuning.outputs['best_parameters'],
+        mlflow_run_id=tuning.outputs["mlflow_run_id"],
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,
         artifact_name=artifact_name,
@@ -123,11 +120,11 @@ def full_pipeline(
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,
         artifact_name=artifact_name,
-        mlflow_metadata=tuning.outputs["mlflow_metadata"],
+        mlflow_run_id=tuning.outputs["mlflow_run_id"],
         minio_endpoint=minio_endpoint,
         minio_access_key=minio_access_key,
         minio_secret_key=minio_secret_key,
-    )
+    ).after(wait)
 
     
     reg = register_model_component(
@@ -136,7 +133,7 @@ def full_pipeline(
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,
         artifact_name=artifact_name,
-        mlflow_metadata=tuning.outputs["mlflow_metadata"]
+        mlflow_run_id=tuning.outputs["mlflow_run_id"],
     )
 
 

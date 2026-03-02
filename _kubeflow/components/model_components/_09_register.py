@@ -1,9 +1,7 @@
-from kfp.dsl import component, InputPath
+from kfp.dsl import component
 
 @component(
-    base_image="<docker-image>:tag"
-    # base_image="python:3.10",
-    # packages_to_install=['pandas', 'mlflow', 'scikit-learn', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
+    base_image="sandy345/kubeflow-pipeline:v1.0.0"
 )
 def register_model_component(
     registry_name: str, 
@@ -11,9 +9,8 @@ def register_model_component(
     tracking_uri: str,
     experiment_name: str,
     artifact_name: str,
-    mlflow_metadata: str
+    mlflow_run_id: str
 ):
-    import os
     from src.model_development._10_registry import register_model_to_mlflow, promote_to_production
 
     registered_model, metrics = register_model_to_mlflow(    
@@ -21,7 +18,7 @@ def register_model_component(
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,
         artifact_name=artifact_name,
-        mlflow_run_id=mlflow_metadata
+        mlflow_run_id=mlflow_run_id
     )
 
     promote_to_production(

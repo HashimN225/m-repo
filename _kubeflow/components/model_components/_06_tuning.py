@@ -1,21 +1,18 @@
 from kfp import dsl
 from kfp.dsl import Input, Output, OutputPath, Model, Dataset
-import yaml
 
 @dsl.component(
-    base_image="<docker-image>:tag"
-    # base_image="python:3.10",
-    # packages_to_install=['pandas', 'mlflow', 'scikit-learn', "git+https://github.com/mlops-hub/kubeflow-training-pipeline.git@main"]
+    base_image="sandy345/kubeflow-pipeline:v1.0.0"
 )
 def tuning_component(
     feast_repo_path: str,
     train_data: Input[Dataset],
     test_data: Input[Dataset],
     preprocessor_model: Input[Model],
-    tuning_metadata: Output[Dataset],
+    best_parameters: Output[Dataset],
     tracking_uri: str,
     experiment_name: str,
-    mlflow_metadata: OutputPath(str),
+    mlflow_run_id: OutputPath(str),
     minio_endpoint: str,
     minio_access_key: str,
     minio_secret_key: str,
@@ -32,14 +29,14 @@ def tuning_component(
 
     from src.model_development._07_tuning import tuning_data
 
-    os.makedirs(tuning_metadata.path, exist_ok=True)
+    os.makedirs(best_parameters.path, exist_ok=True)
 
     train_path = os.path.join(train_data.path, "train.csv")
     test_path = os.path.join(test_data.path, "test.csv")
     preprocessor_output = os.path.join(preprocessor_model.path, "preprocessor.pkl")
-    tuning_file = os.path.join(tuning_metadata.path, "tuning_metadata.json")
+    best_params_path = os.path.join(best_parameters.path, "best_parameters.json")
 
-    mlflow_run_id, tuning_metadata_output = tuning_data(
+    mlflow_run_id, best_parameters_output = tuning_data(
         feast_repo_path=feast_repo_path,
         train_path=train_path, 
         test_path=test_path, 
@@ -48,11 +45,11 @@ def tuning_component(
         experiment_name=experiment_name,
     )
 
-    with open(tuning_file, 'w') as f:
-        json.dump(tuning_metadata_output, f)
+    with open(best_params_path, 'w') as f:
+        json.dump(best_parameters_output, f)
 
 
-    with open(mlflow_metadata, "w") as f:
+    with open(mlflow_run_id, "w") as f:
         f.write(mlflow_run_id)
             
     print("Tuning completed successfully.")

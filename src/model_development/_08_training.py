@@ -102,7 +102,7 @@ def training_data(
     print(f"Checking file path to download from local or minio....")
     local_train = download_local_or_minio(train_path + "/train.csv") # local use "06_preprocess_train_df.csv"
     local_preprocessor = download_local_or_minio(preprocessor_path + "/preprocessor.pkl")
-    local_params = download_local_or_minio(best_params_path + "/tuning_metadata.json")
+    local_params = download_local_or_minio(best_params_path + "/best_parameters.json")
                                  
     # Load data
     print("\nLoading training data...")

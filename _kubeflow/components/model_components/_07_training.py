@@ -97,11 +97,19 @@ def trainer_model_component(
                     # Add these to your "env" list inside the train_job dictionary
                     {
                         "name": "FEAST_REGISTRY_URL",
-                        "value": "<feast-registry-url>"
+                        "value": "postgresql+psycopg://feast:feast@postgres.feast.svc.cluster.local:5432/feast"
                     },
                     {
-                        "name": "FEAST_REDIS_URL",
-                        "value": "<feast-redis-url>"
+                        "name": "FEAST_REDIS_URL", 
+                        "value": "redis.feast.svc.cluster.local:6379,password=changeMeVeryStrong"
+                    },
+                    {
+                        "name": "FEAST_S3_ENDPOINT_URL",
+                        "value": "http://minio-service.kubeflow:9000"
+                    },
+                    {
+                        "name": "S3_ENDPOINT_URL",
+                        "value": "http://minio-service.kubeflow:9000"
                     },
                 ]
             }

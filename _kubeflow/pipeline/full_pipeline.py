@@ -1,4 +1,4 @@
-from kfp import dsl
+from kfp import dsl, kubernetes
 from kfp.compiler import Compiler
 import uuid
 
@@ -106,6 +106,8 @@ def full_pipeline(
         experiment_name=experiment_name,
         artifact_name=artifact_name,
     )
+    train_job.set_caching_options(False)
+    kubernetes.set_image_pull_policy(train_job, "Always")
 
     
     wait = wait_for_training(
@@ -125,6 +127,8 @@ def full_pipeline(
         minio_access_key=minio_access_key,
         minio_secret_key=minio_secret_key,
     ).after(wait)
+    eval.set_caching_options(False)
+    kubernetes.set_image_pull_policy(eval, "Always")
 
     
     reg = register_model_component(
@@ -134,7 +138,7 @@ def full_pipeline(
         experiment_name=experiment_name,
         artifact_name=artifact_name,
         mlflow_run_id=tuning.outputs["mlflow_run_id"],
-    )
+    ).after(eval)
 
 
 # Compile pipeline 

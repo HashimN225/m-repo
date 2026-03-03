@@ -11,7 +11,7 @@ def evaluation_component(
     tracking_uri: str,
     experiment_name: str,
     artifact_name: str,
-    mlflow_metadata: str,
+    mlflow_run_id: str,
     minio_endpoint: str,
     minio_access_key: str,
     minio_secret_key: str,
@@ -34,7 +34,7 @@ def evaluation_component(
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,
         artifact_name=artifact_name,
-        mlflow_run_id=mlflow_metadata
+        mlflow_run_id=mlflow_run_id
     )
 
     print(f"Evaluation is completed. Got accuracy: {metrics['recall']}")

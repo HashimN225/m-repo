@@ -1,15 +1,34 @@
 from feast import FeatureStore
 import pandas as pd
+import redis
 
 
-store = FeatureStore(repo_path="./feature_repo")
+store = FeatureStore(repo_path="./feature_repo", fs_yaml_file="./feature_repo/feature_store.local.yaml")
 
 try:
     print("Attempting to ping Redis...")
-    store.get_online_store()._get_client().ping()
+    r = redis.Redis(
+        host="68.183.87.245",
+        port=30379,
+        username="default",
+        password="changeMeVeryStrong",
+        db=0
+    )
+    r.ping()
     print("✅ Online Store Connection Successful!")
 except Exception as e:
     print(f"❌ Connection Failed: {e}")
+
+
+# Online Fetch
+feature_service = store.get_feature_service("employee_attrition_features")
+
+features = store.get_online_features(
+    features=feature_service,
+    entity_rows=[{"Employee ID": 9063}]
+).to_dict()
+
+print("Online features: ", features)
 
 
 # Offline Fetch
@@ -25,18 +44,6 @@ training_df = store.get_historical_features(
 ).to_df()
 
 print("Training: ", training_df)
-
-
-# Online Fetch
-feature_service = store.get_feature_service("employee_attrition_features")
-
-features = store.get_online_features(
-    features=feature_service,
-    entity_rows=[{"Employee ID": 9063}]
-).to_dict()
-
-print("Online features: ", features)
-
 
 
 # Output:

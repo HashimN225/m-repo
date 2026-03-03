@@ -33,3 +33,5 @@ feast
 feast[redis]
 feast[postgres]
 
+# redis
+# installed in server

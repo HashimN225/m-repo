@@ -1,0 +1,16 @@
+project: employee_attrition
+provider: local
+
+registry:
+    # path: registry.db
+    registry_type: sql
+    path: postgresql+psycopg://feast:feast@68.183.87.245:30032/feast
+    cache_ttl_seconds: 60
+
+online_store:
+    type: redis
+    connection_string: "68.183.87.245:30379,username=default,password=changeMeVeryStrong,db=0"
+
+offline_store:
+    type: file
+s3_endpoint_override: http://0.0.0.0:9000

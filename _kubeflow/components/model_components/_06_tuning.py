@@ -36,7 +36,7 @@ def tuning_component(
     preprocessor_output = os.path.join(preprocessor_model.path, "preprocessor.pkl")
     best_params_path = os.path.join(best_parameters.path, "best_parameters.json")
 
-    mlflow_run_id, best_parameters_output = tuning_data(
+    run_id, best_parameters_output = tuning_data(
         feast_repo_path=feast_repo_path,
         train_path=train_path, 
         test_path=test_path, 
@@ -50,7 +50,7 @@ def tuning_component(
 
 
     with open(mlflow_run_id, "w") as f:
-        f.write(mlflow_run_id)
+        f.write(run_id)
             
     print("Tuning completed successfully.")
 

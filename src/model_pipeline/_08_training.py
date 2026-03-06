@@ -18,21 +18,18 @@ def download_local_or_minio(file_path: str):
     if file_path.startswith("minio://"):
         file_path = file_path[8:]  # Remove 'minio://' prefix
         result_path = download_from_minio(file_path)
+        return result_path
 
     # Handle /minio/ path format
     elif file_path.startswith("/minio/"):
         file_path = file_path[7:]  # Remove '/minio/' prefix
         result_path = download_from_minio(file_path)
+        return result_path
 
     else:
-        result_path = download_local_file(file_path)
+        print("\nDownloading from local.....")
+        return file_path
         
-    return result_path
-
-
-def download_local_file(file_path: str):
-    print("\nDownloading from local.....")
-    return file_path
 
 
 def download_from_minio(minio_path: str) -> str:
@@ -99,13 +96,16 @@ def training_data(
     # Note: Artifact URIs are folders, actual files are inside
     print(f"Checking file path to download from local or minio....")
     print('original_train_path: ', train_path)
-    local_train = download_local_or_minio(train_path + "/train.csv") # local use "06_preprocess_train_df.csv"
+    # local_train = download_local_or_minio(train_path + "/train.csv") # local use "06_preprocess_train_df.csv"
+    local_train = download_local_or_minio(train_path) # local use "06_preprocess_train_df.csv"
 
     print("original preprocess path: ", preprocessor_path)
-    local_preprocessor = download_local_or_minio(preprocessor_path + "/preprocessor.pkl")
+    # local_preprocessor = download_local_or_minio(preprocessor_path + "/preprocessor.pkl")
+    local_preprocessor = download_local_or_minio(preprocessor_path)
 
     print("original best params: ", best_params_path)
-    local_params = download_local_or_minio(best_params_path + "/best_parameters.json")
+    # local_params = download_local_or_minio(best_params_path + "/best_parameters.json")
+    local_params = download_local_or_minio(best_params_path)
                                  
     # Load data
     print("\nLoading training data...")

@@ -6,7 +6,8 @@ from _kubeflow.pipeline.full_pipeline import full_pipeline
 load_dotenv()
 
 PIPELINE_ENDPOINT = os.environ.get("PIPELINE_ENDPOINT", "http://localhost:4040")
-EXPERIMENT_NAME = "kubeflow-mlflow-pipeline"
+print("Kubeflow Pipeline: ", PIPELINE_ENDPOINT)
+EXPERIMENT_NAME = "kubeflow-mlflow-M-2-pipeline"
 
 def submit_pipeline():
     client = kfp.Client(host=PIPELINE_ENDPOINT)
@@ -22,7 +23,7 @@ def submit_pipeline():
         pipeline_func=full_pipeline,
         arguments={},
         experiment_name=EXPERIMENT_NAME,
-        run_name="run-pipeline-2"
+        run_name="run-pipeline-1"
     )
 
     print('run-id: ', run.run_id)

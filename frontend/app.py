@@ -16,13 +16,21 @@ FEAST_REPO_PATH = os.environ.get("FEAST_REPO_PATH", "./_feast/feature_repo")
 
 # Initialize Feast store once at startup
 store = FeatureStore(repo_path=FEAST_REPO_PATH, fs_yaml_file=FEAST_REPO_PATH + '/feature_store.local.yaml')
+feature_service = store.get_feature_service("employee_attrition_features")
+feature_columns = []
 
-registry = MLflowRegistry(
-    tracking_uri=MLFLOW_TRACKING_URI,
-    experiment_name=MLFLOW_EXPERIMENT_NAME
-)
+for projection in feature_service.feature_view_projections:
+    for field in projection.features:
+        feature_columns.append(field.name)
 
-features = registry.load_features_from_mlflow()
+# remove entity + label
+feature_columns = [
+    f for f in feature_columns
+    if f not in ["employee_id", "attrition"]
+]
+
+print("Model features:", feature_columns)
+
 
 app = Flask(__name__)
 CORS(app)
@@ -37,8 +45,6 @@ def index():
 @app.route("/features/<employeeId>", methods=["GET"])
 def get_features(employeeId):
     print(employeeId)
-
-    feature_service = store.get_feature_service("employee_attrition_features")
 
     feast_response = store.get_online_features(
         features=feature_service,
@@ -72,13 +78,12 @@ def predict():
     data["early_company_tenure_risk"] = 1 if years_at_company <= 2 else 0
     data["long_tenure_low_role_risk"] = 1 if (company_tenure > 5 and job_level <= 2) else 0
 
-
     try:
-        missing = set(features) - set(data.keys())
+        missing = set(feature_columns) - set(data.keys())
         if missing:
             raise ValueError(f"Missing features: {missing}")
 
-        df_input = pd.DataFrame([[data.get(f) for f in features]], columns=features)
+        df_input = pd.Dataframe([data]).reindex(columns=feature_columns)
         print('df-input: ', df_input.to_dict(orient="records"))
 
 

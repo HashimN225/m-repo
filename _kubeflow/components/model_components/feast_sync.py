@@ -2,7 +2,7 @@ from kfp import dsl
 from kfp.dsl import component, Input, Dataset
 
 @component(
-    base_image="sandy345/kubeflow-pipeline:v1.0.0"
+    base_image="sandy345/kubeflow-pipeline:v2.0.1"
 )
 def feast_sync_component(
     feast_data: Input[Dataset],

@@ -26,7 +26,6 @@ from _kubeflow.components.util.wait_job import wait_for_training
 )
 def full_pipeline(
     namespace: str = "kubeflow",
-    trainer_image: str = "sandy345/kubeflow-pipeline:v1.0.0",
     tracking_uri: str = "http://mlflow.mlflow.svc.cluster.local:80",
     experiment_name: str = "employee-attrition",
     artifact_name: str = "employee-attrition-model",
@@ -73,6 +72,7 @@ def full_pipeline(
         minio_access_key=minio_access_key,
         minio_secret_key=minio_secret_key,
     )
+    feast_sync.set_caching_options(False)
     
     # model pipeline
     # ----------------------------------------------------
@@ -94,9 +94,6 @@ def full_pipeline(
 
     # trainer job - kubeflow trainer
     train_job = trainer_model_component(
-        job_name=f"attrition-trainer-job-{uuid.uuid4().hex[:4]}",
-        namespace=namespace,
-        image=trainer_image,
         feast_repo_path=feast_repo_path,
         train_path=preprocess.outputs['train_data'],
         preprocessor_model=preprocess.outputs['preprocessor_model'],
@@ -105,7 +102,10 @@ def full_pipeline(
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,
         artifact_name=artifact_name,
-    )
+        minio_endpoint=minio_endpoint,
+        minio_access_key=minio_access_key,
+        minio_secret_key=minio_secret_key,
+    ).after(tuning)
     train_job.set_caching_options(False)
     kubernetes.set_image_pull_policy(train_job, "Always")
 

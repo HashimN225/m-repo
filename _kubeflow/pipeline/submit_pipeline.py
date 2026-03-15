@@ -6,7 +6,7 @@ from _kubeflow.pipeline.full_pipeline import full_pipeline
 load_dotenv()
 
 PIPELINE_ENDPOINT = os.environ.get("PIPELINE_ENDPOINT", "http://localhost:4040")
-print('----- pipeline endpoint ----: ', PIPELINE_ENDPOINT)
+print('Pipeline Endpoint: ', PIPELINE_ENDPOINT)
 
 EXPERIMENT_NAME = "kubeflow-mlflow-feast-v1.0.0"
 

@@ -19,21 +19,15 @@ def download_local_or_minio(file_path: str):
     if file_path.startswith("minio://"):
         file_path = file_path[8:]  # Remove 'minio://' prefix
         result_path = download_from_minio(file_path)
-
+        return result_path
     # Handle /minio/ path format
     elif file_path.startswith("/minio/"):
         file_path = file_path[7:]  # Remove '/minio/' prefix
         result_path = download_from_minio(file_path)
-
+        return result_path
     else:
-        result_path = download_local_file(file_path)
-        
-    return result_path
-
-
-def download_local_file(file_path: str):
-    print("\nDownloading from local.....")
-    return file_path
+        print("\nDownloading from local.....")
+        return file_path
 
 
 def download_from_minio(minio_path: str) -> str:

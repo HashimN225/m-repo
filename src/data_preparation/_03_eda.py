@@ -12,36 +12,35 @@ def eda_data(df_path: str) -> pd.DataFrame:
 
     # Distribution of Age
     plt.figure(figsize=(8, 6))
-    sns.histplot(df['age'], bins=30, kde=True)
-    plt.title('Age Distribution')
-    plt.xlabel('Age')
-    plt.ylabel('Frequency')
+    sns.histplot(df["age"], bins=30, kde=True)
+    plt.title("Age Distribution")
+    plt.xlabel("Age")
+    plt.ylabel("Frequency")
     plt.show()
 
     # Attrition count plot
     plt.figure(figsize=(6, 4))
-    sns.countplot(x='attrition', data=df)
-    plt.title('Attrition Count')
-    plt.xlabel('Attrition')
-    plt.ylabel('Count')
+    sns.countplot(x="attrition", data=df)
+    plt.title("Attrition Count")
+    plt.xlabel("Attrition")
+    plt.ylabel("Count")
     plt.show()
 
     # Monthly Income vs Job Level
     plt.figure(figsize=(10, 6))
-    sns.boxplot(x='job_level', y='monthly_income', data=df)
-    plt.title('Monthly Income by Job Level')
-    plt.xlabel('Job Level')
-    plt.ylabel('Monthly Income')
+    sns.boxplot(x="job_level", y="monthly_income", data=df)
+    plt.title("Monthly Income by Job Level")
+    plt.xlabel("Job Level")
+    plt.ylabel("Monthly Income")
     plt.show()
 
     # Correlation heatmap
     plt.figure(figsize=(12, 10))
-    corr = df.select_dtypes(include=['int64', 'float64']).corr()
-    sns.heatmap(corr, annot=True, fmt=".2f", cmap='coolwarm')
-    plt.title('Correlation Heatmap')
+    corr = df.select_dtypes(include=["int64", "float64"]).corr()
+    sns.heatmap(corr, annot=True, fmt=".2f", cmap="coolwarm")
+    plt.title("Correlation Heatmap")
     plt.show()
 
-    df.to_csv(EDA_PATH, index=False)
     return df
 
 

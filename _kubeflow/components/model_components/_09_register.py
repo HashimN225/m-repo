@@ -1,7 +1,8 @@
-from kfp.dsl import component, InputPath
+from kfp.dsl import component
+from config import BASE_IMAGE
 
 @component(
-    base_image="<docker-repo:tag>"
+    base_image=BASE_IMAGE
 )
 def register_model_component(
     registry_name: str, 
@@ -15,7 +16,7 @@ def register_model_component(
     minio_secret_key: str,
 ):
     import os
-    from src.model_pipeline._10_registry import register_model_to_mlflow, promote_to_production
+    from src.model_development._10_registry import register_model_to_mlflow, promote_to_production
 
     # Must be set BEFORE any feast/pyarrow/boto3 imports
     os.environ["AWS_ACCESS_KEY_ID"] = minio_access_key

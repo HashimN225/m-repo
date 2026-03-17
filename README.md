@@ -19,15 +19,17 @@
 - [Features](#features)
 - [Project Structure](#project-structure)
 - [Tech Stack](#tech-stack)
+- [ML Pipeline](#ml-pipeline)
 - [Setup & Installation](#setup--installation)
   - [Prerequisites](#prerequisites)
   - [Environment Setup](#environment-setup)
   - [Kubeflow Configuration](#kubeflow-configuration)
-  - [Running Kubeflow Pipelines](#running-kubeflow-pipelines)
+  - [Executing Kubeflow Pipelines](#executing-kubeflow-pipelines)
 - [ML Pipeline](#ml-pipeline)
 - [MLflow Model Registry](#mlflow-model-registry)
 - [Model Serving](#model-serving)
-- [Frontend](#frontend)
+- [Frontend](#executing-frontend)
+- [Troubleshooting](#troubleshooting)
 - [Contribution](#contribution)
 
 
@@ -157,54 +159,58 @@ The main dataset [employee_attrition.csv](./datasets/employee_attrition.csv) con
 
 ```
 employee-attrition-kubeflow/
+|__ _feast/                             # feast setup
+|  |__ feature_repo/
+|    |__ feature_definitons.py
+|     |__ feature_store.yaml
+|
 ├── _kubeflow/                          # Kubeflow Pipeline & Components
 │   ├── pipeline/
 │   │   ├── full_pipeline.py            # Complete ML pipeline definition
 │   │   └── submit_pipeline.py          # Submit pipeline to Kubeflow
 │   └── components/
 │       ├── data_components/            # Data processing components
-│       │   ├── _01_ingestion.py        # Data loading & exploration
-│       │   ├── _02_validation.py       # Data validation with Pandera
-│       │   ├── _03_cleaning.py         # Data cleaning & preprocessing
-│       │   ├── _04_feature_engg.py     # Feature engineering
-│       │   └── _05_preprocessing.py    # Scaling, normalization, splits
+│       │   ├── _01_ingestion.py        
+│       │   ├── _02_validation.py       
+│       │   ├── _03_cleaning.py         
+│       │   ├── _04_feature_engg.py     
+│       │   └── _05_preprocessing.py    
 │       ├── model_components/           # Model training components
-│       │   ├── _06_tuning.py           # Hyperparameter tuning (logged to MLflow)
-│       │   ├── _07_training.py         # Model training (metrics tracked)
-│       │   ├── _08_evaluation.py       # Model evaluation (logged to MLflow)
-│       │   └── _09_register.py         # Register model in MLflow registry
+│       │   ├── _06_tuning.py           
+│       │   ├── _07_training.py         
+│       │   ├── _08_evaluation.py       
+│       │   └── _09_register.py         
 │       └── util/
 │           └── wait_job.py             # Utility for pipeline job wait
 │
 ├── _mlflow/                            # MLflow Integration
-│   └── registry.py                     # MLflow model registry operations
+│   └── registry.py                     
 │
 ├── src/                                # Standalone Python modules (local execution)
-│   ├── data_pipeline/
+│   ├── data_preparation/
 │   │   ├── _01_ingestion.py
 │   │   ├── _02_validation.py
 │   │   ├── _03_eda.py
 │   │   ├── _04_cleaning.py
 │   │   ├── _05_feature_engg.py
 │   │   ├── _06_preprocessing.py
-│   └── model_pipeline/
+│   └── model_development/
 │       ├── _07_tuning.py
 │       ├── _08_training.py
 │       ├── _09_evaluation.py
 │       └── _10_registry.py
-│
+│       └── feast_sync.py
+|
 ├── datasets/
 │   ├── employee_attrition.csv          # Main dataset (74,500 records)
 │   └── data-pipeline/                  # Intermediate processed datasets
-│       ├── 01_ingestion.csv
-│       ├── ....
-├── artifacts/                          # Trained models & MLflow metadata
 ├── frontend/                           # Flask Web UI
 │   ├── app.py
 │   ├── static/
 │   └── templates/
 │
 ├── notebook/
+|__ inference.yaml                      # KServe setup
 ├── requirements.txt                    # Python dependencies
 ├── setup.py                            # Package setup
 ├── Dockerfile                          # Container image for components
@@ -216,6 +222,7 @@ employee-attrition-kubeflow/
 **Core MLOps:**
 - **Kubeflow Pipelines**: Kubernetes-native ML workflow orchestration
 - **Kubeflow Trainer Operator**: Kubernetes-native ML training system
+- **Feast**: Feature Management, to ensure training and inference use same features
 - **MLflow**: Experiment tracking, model versioning, and registry
 - **KServe**: Model serving and inference (KServe deployment)
 
@@ -271,6 +278,11 @@ The end-to-end ML workflow is orchestrated through Kubeflow as containerized, re
    - Input: `minio://<feature_engg.csv>`
    - Output: `minio://<train.csv>`, `minio://<test.csv>`, `minio://<preprocessor.pkl>`
    - Applies: ColumnTransformer, test-train split (80-20)
+
+
+#### **Feast Setup** (_kubeflow/components/model_components/)
+   - Run feast to store datasets in both offline and online store
+
 
 #### **Model Development Pipeline** (_kubeflow/components/model_components/)
 
@@ -341,6 +353,7 @@ Navigate to `http://localhost:5000` to:
 
 - **Kubernetes Cluster**: Running 1.16+ (Minikube, EKS, GKE, or similar)
 - **Kubeflow**: 1.6+ installed on cluster
+- **Feast**: setup Postgres (for registry), redis (online store), S3/MinIO(offline store)
 - **MLflow**: Accessible from cluster (local or remote server)
 - **Docker**: For building component images
 - **Python**: 3.11+
@@ -420,7 +433,7 @@ Update image references in `_kubeflow/pipeline/full_pipeline.py`:
 CONTAINER_IMAGE = "<registry>/employee-attrition:latest"
 ```
 
-### Running Kubeflow Pipelines
+### Executing Kubeflow Pipelines
 
 #### Option A: Run the Full ML Pipeline with Kubeflow
 
@@ -451,20 +464,22 @@ kubectl get pods -n kubeflow-user-example-com
 For local development/testing without Kubeflow:
 
 ```bash
-cd src/data_pipeline
+cd src/data_preparation
 
 # Sequential execution
 python _01_ingestion.py
 python _02_validation.py
-python _03_cleaning.py
-python _04_feature_engg.py
-python _05_preprocessing.py
+python _03_eda.py
+python _04_cleaning.py
+python _05_feature_engg.py
+python _06_preprocessing.py
 
 cd ../../     # at root project
-python -m src.model_pipeline._07_training.py       # Logs to MLflow
-python -m src.model_pipeline._08_evaluation.py     # Logs to MLflow
-python -m src.model_pipeline._09_evaluation.py     # Registers model in MLflow
-python -m src.model_pipeline._10_registry.py       # Manages registry
+python -m src.model_development.feast_sync            # run feast
+python -m src.model_development._07_tuning.py
+python -m src.model_development._08_training.py          
+python -m src.model_development._09_evaluation.py     
+python -m src.model_development._10_registry.py       
 ```
 
 #### Step 7: View MLflow Experiment Tracking
@@ -483,73 +498,39 @@ In the MLflow UI, you can:
 - Access registered models in the registry
 
 #### Step 8: Deploy Model with KServe (Optional)
+Define Kserve using yaml script
 
 At root create `inference.yaml` file in server
 
 ```bash
-nano inference.yaml
+inference.yaml
 ```
 
-Write yaml script
-
-```yaml
-apiVersion: "serving.kserve.io/v1beta1"
-kind: "InferenceService"
-metadata:
-  name: "sklearn-employee-attrition"
-  namespace: "default"
-spec:
-  predictor:
-    serviceAccountName: kserve-minio-sa
-    sklearn:
-      storageUri: "s3://mlpipeline/mlflow-artifacts/<epxeriment-id>/models/<model-id>/artifacts/"
-      resources:
-        requests:
-          cpu: 100m
-          memory: 256Mi
-      env:
-        - name: MLFLOW_TRACKING_URI
-          value: "http://mlflow.mlflow.svc.cluster.local:80"
-        - name: MLFLOW_S3_ENDPOINT_URL
-          value: "http://minio-service.kubeflow.svc.cluster.local:9000"
-        - name: MLFLOW_S3_IGNORE_TLS
-          value: "true"
-        - name: AWS_DEFAULT_REGION
-          value: "us-east-1"
-        - name: AWS_ACCESS_KEY_ID
-          value: "<minio-access>"
-        - name: AWS_SECRET_ACCESS_KEY
-          value: "<minio123-secret>"
-```
-
-Apply KServe
-
+Run the yaml script in server
 ```bash
 kubectl apply -f inference.yaml
 ```
 
-To test if service pod is running
-
+To see service ready
 ```bash
 kubectl get inferenceservices
-````
-**Note:** Test using curl or expsoe your Node to External IP port.
+```
 
-### Running the Frontend
+To know about service in detail
+```bash
+kubectl describe <inference-pod-name>
+```
+
+## Executing Frontend
 
 ```bash
-cd frontend
-
 # Start Flask application
-python app.py
+python -m frontend.app
 
 # Access web UI at: http://localhost:5000
 ```
 
 **Note:** Ensure model artifacts are available locally before starting the frontend, or configure it to fetch from MLflow registry.
-
-
-Access at `http://localhost:5000` and input employee data to get attrition predictions.
 
 
 ## Troubleshooting

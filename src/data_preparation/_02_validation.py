@@ -2,7 +2,7 @@ import pandera.pandas as pa
 from pandera import Column, Check
 import pandas as pd
 
-# define schema
+# 1.Define the schema
 employee_schema = pa.DataFrameSchema(
     {
         "employee_id": Column(int, Check.ge(1), unique=True, nullable=False),
@@ -29,7 +29,6 @@ employee_schema = pa.DataFrameSchema(
     coerce=True,
 )
 
-
 def validate_data(df_path: str) -> pd.DataFrame:
     try:
         df = pd.read_csv(df_path)
@@ -37,6 +36,7 @@ def validate_data(df_path: str) -> pd.DataFrame:
         validate_df = employee_schema(df, lazy=True)
         print("Data validation successful.")
         return validate_df
+
     except pa.errors.SchemaErrors as e:
         print("Data validation errors found:")
         print(e.failure_cases)

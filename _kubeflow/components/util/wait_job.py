@@ -1,7 +1,8 @@
 from kfp.dsl import component
+from config import BASE_IMAGE
 
 @component(
-    base_image="<docker-repo:tag>"
+    base_image=BASE_IMAGE
 )
 def wait_for_training(job_name: str, namespace: str):
     from kubernetes import client, config

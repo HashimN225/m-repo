@@ -1,14 +1,18 @@
 from kfp import dsl
-from kfp.dsl import Input, Artifact, OutputPath
+from kfp.dsl import Input, Artifact, InputPath, OutputPath
+from kubernetes import client as k8s_client
+from kubernetes.client import V1EnvVar, V1EnvVarSource, V1SecretKeySelector
 
 
 @dsl.component(
-    base_image="<docker-repo:tag>"
+    base_image="sandy345/kubeflow-pipeline:v2.0.1",
+    packages_to_install=['kubernetes']
 )
 def trainer_model_component(
     job_name: str,
     namespace: str,
     image: str,
+    feast_repo_path: str,
     train_path: Input[Artifact],
     preprocessor_model: Input[Artifact],
     best_parameters: Input[Artifact],
@@ -18,6 +22,8 @@ def trainer_model_component(
     experiment_name: str,
     artifact_name: str,
 ):
+    """Creates a Kubeflow TrainJob for model training with MinIO access."""
+    
     from kubernetes import client, config
     
     # Load in-cluster config
@@ -43,8 +49,9 @@ def trainer_model_component(
             },
             "trainer": {
                 "image": image,
-                "command": ["python", "-m", "src.model_pipeline._08_training"],
+                "command": ["python", "-m", "src.model_development._08_training"],
                 "args": [
+                    "--feast_repo_path", feast_repo_path,
                     "--train_path", train_path.uri,
                     "--preprocessor_path", preprocessor_model.uri,
                     "--best_params_path", best_parameters.uri,
@@ -54,11 +61,11 @@ def trainer_model_component(
                 "resourcesPerNode": {
                     "requests": {
                         "cpu": "500m",
-                        "memory": "256Mi"
+                        "memory": "256Mi",
                     },
                     "limits": {
                         "cpu": "500m",
-                        "memory": "512Mi"
+                        "memory": "512Mi",
                     }
                 },
                 "env": [
@@ -67,7 +74,7 @@ def trainer_model_component(
                     {"name": "MLFLOW_EXPERIMENT_NAME", "value": str(experiment_name)},
                     {"name": "MLFLOW_MODEL_NAME", "value": str(artifact_name)},
                     # MinIO settings
-                    {"name": "MLFLOW_S3_ENDPOINT_URL", "value": "http://minio-service.kubeflow:9000"},
+                    {"name": "MINIO_ENDPOINT", "value": "http://minio-service.kubeflow:9000"},
                     # MinIO credentials from secret
                     {
                         "name": "AWS_ACCESS_KEY_ID",
@@ -86,7 +93,24 @@ def trainer_model_component(
                                 "key": "secretkey"
                             }
                         }
-                    }
+                    },
+                    # Add these to your "env" list inside the train_job dictionary
+                    {
+                        "name": "FEAST_REGISTRY_URL",
+                        "value": "postgresql+psycopg://feast:feast@postgres.feast.svc.cluster.local:5432/feast"
+                    },
+                    {
+                        "name": "FEAST_REDIS_URL", 
+                        "value": "redis.feast.svc.cluster.local:6379,password=changeMeVeryStrong"
+                    },
+                    {
+                        "name": "FEAST_S3_ENDPOINT_URL",
+                        "value": "http://minio-service.kubeflow:9000"
+                    },
+                    {
+                        "name": "S3_ENDPOINT_URL",
+                        "value": "http://minio-service.kubeflow:9000"
+                    },
                 ]
             }
         }

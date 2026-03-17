@@ -7,19 +7,59 @@ from sklearn.metrics import accuracy_score, recall_score
 from _mlflow.registry import MLflowRegistry
 import os
 from dotenv import load_dotenv
+from feast import FeatureStore
 
 load_dotenv()
 
 
-def tuning_data(train_path: str, test_path: str, preprocess_path: str, tracking_uri: str, experiment_name: str) -> dict:
-    df_train = pd.read_csv(train_path)
-    df_test = pd.read_csv(test_path)
+def tuning_data(feast_repo_path: str, train_path: str, test_path: str, preprocess_path: str, tracking_uri: str, experiment_name: str) -> dict:
+    # ------- feast setup ------------
+    # 1. Initialize Feast
+    # repo_path should point to where your feature_store.yaml is
+    store = FeatureStore(repo_path=feast_repo_path)
+        
+    entity_df_train = pd.read_csv(train_path)
+    entity_df_test = pd.read_csv(test_path)
 
-    X_train = df_train.drop(columns=['attrition'])
+    entity_cols = ['employee_id', 'event_timestamp']
+    entity_df_train = entity_df_train[entity_cols].copy()
+    entity_df_test = entity_df_test[entity_cols].copy()
+
+
+    # 2. Ensure timestamps are actual datetime objects
+    entity_df_train['event_timestamp'] = pd.to_datetime(entity_df_train['event_timestamp'])
+    entity_df_test['event_timestamp'] = pd.to_datetime(entity_df_test['event_timestamp'])
+
+    # 3. Pull Features from Feast
+    print("Fetching training features from Feast...")
+    df_train = store.get_historical_features(
+        entity_df=entity_df_train,
+        features=store.get_feature_service("employee_attrition_features")
+    ).to_df()
+    # to_arrow().to_pandas(types_mapper=pd.ArrowDtype)
+
+    print("Fetching testing features from Feast...")
+    df_test = store.get_historical_features(
+        entity_df=entity_df_test,
+        features=store.get_feature_service("employee_attrition_features")
+    ).to_df()
+
+    print(df_train.head(2))
+    print(df_train.isnull().sum())
+    print(df_test.isnull().sum())
+    # ------- end feast ------------------
+
+    # Prepare X and y
+    # Note: Feast returns entity columns + features. 
+    # Drop the keys that the model shouldn't see.
+    cols_to_drop = ['attrition', 'employee_id', 'event_timestamp']
+
+    X_train = df_train.drop(columns=cols_to_drop)
     y_train = df_train['attrition']
 
-    X_test = df_test.drop(columns=['attrition'])
+    X_test = df_test.drop(columns=cols_to_drop)
     y_test = df_test['attrition']
+
 
     # load preprocessor
     preprocessor = joblib.load(preprocess_path)
@@ -101,18 +141,21 @@ if __name__ == "__main__":
 
     ARTIFACTS_PATH = BASE_DIR / "artifacts"
     PREPROCESSOR_PATH = ARTIFACTS_PATH / "preprocessor.pkl"
-    TUNING_METADATA = ARTIFACTS_PATH / "best_parameters.json"
+    BEST_PARAMETERS = ARTIFACTS_PATH / "best_parameters.json"
     MLFLOW_RUN_ID = ARTIFACTS_PATH / "mlflow_run_id.txt"  
 
+    FEAST_DATA_DIR = BASE_DIR / "_feast" / "feature_repo"
+
     run_id, overall_parameters = tuning_data(
+        feast_repo_path=FEAST_DATA_DIR,
         train_path=TRAIN_PATH, 
         test_path=TEST_PATH, 
         preprocess_path=PREPROCESSOR_PATH,
         tracking_uri = os.environ["MLFLOW_TRACKING_URI"],
-        experiment_name = os.environ["MLFLOW_EXPERIMENT_NAME"]
+        experiment_name = os.environ["MLFLOW_EXPERIMENT_NAME"],
     )
 
-    with open(TUNING_METADATA, 'w') as f:
+    with open(BEST_PARAMETERS, 'w') as f:
         json.dump(overall_parameters, f)
 
     with open(MLFLOW_RUN_ID, "w") as f:

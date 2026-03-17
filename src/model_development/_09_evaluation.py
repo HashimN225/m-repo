@@ -5,10 +5,11 @@ import matplotlib.pyplot as plt
 from _mlflow.registry import MLflowRegistry
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, precision_score, recall_score, f1_score, roc_auc_score
 from dotenv import load_dotenv
+from feast import FeatureStore
 
 load_dotenv()
 
-def evaluate_data(test_path: str, tracking_uri: str, experiment_name: str, artifact_name: str, mlflow_run_id: str):
+def evaluate_data(feast_repo_path: str, test_path: str, tracking_uri: str, experiment_name: str, artifact_name: str, mlflow_run_id: str):
 
     registry = MLflowRegistry(
         tracking_uri=tracking_uri,
@@ -19,8 +20,24 @@ def evaluate_data(test_path: str, tracking_uri: str, experiment_name: str, artif
         # load model form MLflow
         model = registry.load_model(run_id=mlflow_run_id, artifact_name=artifact_name)
 
-        df_test = pd.read_csv(test_path)
-        X_test = df_test.drop(columns=['attrition'])
+        entity_df = pd.read_csv(test_path)
+
+        # --- feast -------------
+        print("\nGetting training data from feast....")
+        entity_cols = ['employee_id', 'event_timestamp']
+        entity_df = entity_df[entity_cols].copy()
+        entity_df['event_timestamp'] = pd.to_datetime(entity_df['event_timestamp'])
+
+        # initalize store
+        store = FeatureStore(repo_path=feast_repo_path)
+
+        df_test = store.get_historical_features(
+            entity_df=entity_df,
+            features=store.get_feature_service("employee_attrition_features")
+        ).to_df()
+        
+
+        X_test = df_test.drop(columns=['employee_id', 'event_timestamp', 'attrition'])
         y_test = df_test['attrition']
 
         # predict
@@ -72,10 +89,13 @@ if __name__ == "__main__":
     ARTIFACTS_PATH = BASE_DIR / "artifacts"
     MLFLOW_RUN_ID = ARTIFACTS_PATH / "mlflow_run_id.txt"
 
+    FEAST_DATA_DIR = BASE_DIR / "_feast" / "feature_repo"
+
     with open(MLFLOW_RUN_ID, 'r') as f:
         run_id = f.read().strip()
 
     evaluate_data(
+        feast_repo_path=FEAST_DATA_DIR,
         test_path=TEST_PATH, 
         tracking_uri=os.environ["MLFLOW_TRACKING_URI"],
         experiment_name=os.environ["MLFLOW_EXPERIMENT_NAME"],

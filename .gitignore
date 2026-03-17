@@ -8,14 +8,13 @@ venv/
 */*/__pycache__
 */*/*/__pycache__
 /datasets/data-pipeline
-/datasets/text.csv
-/pipeline_save_to_s3_with_env.yaml
-
-/test.py
+/_feast/feature_repo/data/
 
 /src/mlflow_runs
 
 /deploy_kserve
-/_kubeflow/components/model_components/_7_*.py
 
-/frontend/custom_app.py
+/feature_store_ex.yaml
+/test_workflow.py
+/upload_dataset.py
+/example*.yaml

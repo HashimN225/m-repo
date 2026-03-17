@@ -8,9 +8,19 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def preprocess_data(df_path: str):
+def preprocess_data(df_path: str, parquet_output_path: str):
     # ------- Feast Logic ---------
     full_df = pd.read_csv(df_path)
+
+    if 'event_timestamp' not in full_df.columns:
+        full_df['event_timestamp'] = pd.Timestamp.now()
+
+    print("Columns in full_df before saving to parquet:")
+    print(full_df.columns.tolist())
+
+    full_df.to_parquet(parquet_output_path, index=False)
+    print(f"Temporarily save Feast data in: {parquet_output_path}")
+    # --- END FEAST LOGIC ---
      
     # Separate features and target
     X = full_df.drop(columns=["attrition"])
@@ -82,9 +92,15 @@ if __name__ == "__main__":
     os.makedirs(ARTIFACTS_PATH, exist_ok=True)
     PREPROCESSOR_PATH = ARTIFACTS_PATH / "preprocessor.pkl"
 
+    # New Paths for Feast
+    FEAST_DATA_DIR = BASE_DIR / "_feast" / "feature_repo" / "data" 
+    os.makedirs(FEAST_DATA_DIR, exist_ok=True)
+    PARQUET_PATH = FEAST_DATA_DIR / "preprocessed_data.parquet"
+
 
     train_df, test_df, preprocessor = preprocess_data(
         df_path=FEATURED_PATH,
+        parquet_output_path=PARQUET_PATH,
     )
 
     # Save preprocessed data

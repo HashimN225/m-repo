@@ -7,7 +7,7 @@ spec:
   predictor:
     serviceAccountName: kserve-minio-sa
     sklearn:
-      storageUri: "s3://mlpipeline/mlflow-artifacts/1/models/m-faf7f44848e84a2992c49d60a510bfdd/artifacts/"
+      storageUri: "s3://mlpipeline/mlflow-artifacts/2/models/m-8711b9f5de83458f87679aa3bf688127/artifacts/"
       resources:
         requests:
           cpu: 100m

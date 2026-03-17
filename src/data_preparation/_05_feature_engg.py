@@ -47,7 +47,6 @@ def feature_data(df_path: str) -> pd.DataFrame:
     df_fe["opportunities"] = df_fe["leadership_opportunities"] + df_fe["innovation_opportunities"]
     df_fe = df_fe.drop(columns=["leadership_opportunities", "innovation_opportunities"])
 
-
     # annual income binning
     # -----------------------------------------------
     df_fe["annual_income"] = df_fe["monthly_income"] * 12

@@ -1,14 +1,22 @@
 from kfp.dsl import component, Output, Dataset
+from config import BASE_IMAGE
 
 @component(
-    base_image="<docker-repo:tag>"
+    base_image=BASE_IMAGE
 )
 def ingestion_component(
     output_data: Output[Dataset]
 ):
     import os
     import boto3
-    from src.data_pipeline._01_ingestion import ingestion
+    from src.data_preparation._01_ingestion import ingestion
+
+    s3 = boto3.client(
+        "s3",
+        endpoint_url="http://minio-service.kubeflow:9000",
+        aws_access_key_id="minio",
+        aws_secret_access_key="minio123",
+    )
 
     s3 = boto3.client(
         "s3",

@@ -1,15 +1,16 @@
 
 from kfp.dsl import component, Input, Output, Dataset
+from config import BASE_IMAGE
 
 @component(
-    base_image="<docker-repo:tag>"
+    base_image=BASE_IMAGE
 )
 def validation_component(
     input_data: Input[Dataset], 
     output_data: Output[Dataset]
 ):
     import os
-    from src.data_pipeline._02_validation import validate_data
+    from src.data_preparation._02_validation import validate_data
 
     input_path = os.path.join(input_data.path, "ingestion.csv")
 

@@ -25,15 +25,14 @@ from _kubeflow.components.util.wait_job import wait_for_training
 )
 def full_pipeline(
     namespace: str = "kubeflow",
-    trainer_image: str = "<docker-repo:tag>",
     tracking_uri: str = "http://mlflow.mlflow.svc.cluster.local:80",
-    experiment_name: str = "employee-attrition-v1",
+    experiment_name: str = "employee-attrition-v2",
     artifact_name: str = "employee-attrition-model",
     registry_name: str = "register-employee-attrition-model",
     recall_threshold: float = 0.65,
     minio_endpoint: str = "http://minio-service.kubeflow:9000",
-    minio_access_key: str = "<minio-secret>",
-    minio_secret_key: str = "<minio-access>",
+    minio_access_key: str = "minio",
+    minio_secret_key: str = "minio123",
 ):
     # data pipeline
     # -----------------------------------------------------
@@ -71,12 +70,9 @@ def full_pipeline(
 
     # trainer job - kubeflow trainer
     train_job = trainer_model_component(
-        job_name=f"attrition-trainer-job-{uuid.uuid4().hex[:4]}",
-        namespace=namespace,
-        image=trainer_image,
-        train_path=preprocess.outputs['train_data'],
-        preprocessor_model=preprocess.outputs['preprocessor_model'],
-        best_parameters=tuning.outputs['best_parameters'],
+        train_path=preprocess.outputs['train_data'].uri,
+        preprocessor_model=preprocess.outputs['preprocessor_model'].uri,
+        best_parameters=tuning.outputs['best_parameters'].uri,
         mlflow_run_id=tuning.outputs["mlflow_run_id"],
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,

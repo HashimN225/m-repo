@@ -1,5 +1,5 @@
 from kfp.dsl import component, Output, Dataset
-from config import BASE_IMAGE
+from _kubeflow.config import BASE_IMAGE
 
 @component(
     base_image=BASE_IMAGE

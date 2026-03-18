@@ -1,6 +1,6 @@
 
 from kfp.dsl import component, Input, Output, Dataset
-from config import BASE_IMAGE
+from _kubeflow.config import BASE_IMAGE
 
 
 @component(

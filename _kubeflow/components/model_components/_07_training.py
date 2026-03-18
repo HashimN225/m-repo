@@ -1,6 +1,6 @@
 from kfp import dsl
 from kfp.dsl import Input, Artifact, OutputPath, Dataset
-from config import BASE_IMAGE
+from _kubeflow.config import BASE_IMAGE
 
 
 @dsl.component(

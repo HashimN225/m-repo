@@ -24,7 +24,6 @@ kubeflow-training
 # mlflow
 mlflow
 
-
 # API / Serving 
 flask
 flask-cors
@@ -34,5 +33,4 @@ feast
 feast[redis]
 feast[postgres]
 
-# redis
-# installed in server
+torch

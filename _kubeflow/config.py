@@ -1,1 +1,1 @@
-BASE_IMAGE = "<docker-username>/<docker-image-name>:<docker-tag>"
+BASE_IMAGE = "hashimn/kubeflow_pipeline:v15"

@@ -5,7 +5,7 @@ from kubernetes.client import V1EnvVar, V1EnvVarSource, V1SecretKeySelector
 
 
 @dsl.component(
-    base_image="sandy345/kubeflow-pipeline:v2.0.1",
+    base_image="hashimn/kubeflow_pipeline:v14",
     packages_to_install=['kubernetes']
 )
 def trainer_model_component(

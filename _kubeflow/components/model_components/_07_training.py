@@ -4,7 +4,7 @@ from _kubeflow.config import BASE_IMAGE
 
 
 @dsl.component(
-    base_image="hashimn/kubeflow_pipeline:v15",
+    base_image="hashimn/kubeflow_pipeline:test",
     packages_to_install=['kubernetes']
 )
 def trainer_model_component_v2(
@@ -23,7 +23,8 @@ def trainer_model_component_v2(
 ):
     """Creates a Kubeflow TrainJob for model training"""
 
-    job_name = f"train-{mlflow_run_id[:5]}"
+    import uuid
+    job_name = f"train-{mlflow_run_id[:5]}-{uuid.uuid4().hex[:4]}"
     namespace = "kubeflow"
 
     from kubernetes import client, config

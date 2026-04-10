@@ -47,11 +47,15 @@ def download_from_minio(minio_path: str) -> str:
     print(f"Downloading from MinIO: bucket={bucket}, key={key}")
     
     # MinIO client using S3 API
+    endpoint = os.environ.get('MINIO_ENDPOINT', 'http://minio-service.kubeflow:9000').strip()
+    access_key = os.environ.get('AWS_ACCESS_KEY_ID', 'minio').strip()
+    secret_key = os.environ.get('AWS_SECRET_ACCESS_KEY', 'minio123').strip()
+
     s3 = boto3.client(
         's3',
-        endpoint_url=os.environ.get('MINIO_ENDPOINT', 'http://minio-service.kubeflow:9000'),
-        aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID', 'minio'),
-        aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY', 'minio123'),
+        endpoint_url=endpoint,
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_key,
         config=Config(signature_version='s3v4'),
         region_name='us-east-1'
     )
@@ -82,13 +86,24 @@ def training_data(
 ):
     print("=" * 50)
     print("Starting training job...")
+    
+    def print_env_hex(name, val):
+        if val:
+            hex_val = ' '.join(hex(ord(c)) for c in val)
+            print(f"DEBUG: {name} (hex): {hex_val}")
+        else:
+            print(f"DEBUG: {name} is None or empty")
+
+    print_env_hex("MINIO_ENDPOINT", os.environ.get('MINIO_ENDPOINT'))
+    print_env_hex("MLFLOW_TRACKING_URI", os.environ.get('MLFLOW_TRACKING_URI'))
+
     print(f"Train path: {train_path}")
     print(f"Preprocessor path: {preprocessor_path}")
     print(f"Best params path: {best_params_path}")
     print(f"MLflow Run ID: {mlflow_run_id}")
     print(f"Tracking URI: {tracking_uri}")
     print(f"Experiment: {experiment_name}")
-    print("Training version: 2")
+    print("Training version: 3") # Updated version
     print("=" * 50)
 
     
@@ -145,8 +160,8 @@ def training_data(
 
     # Initialize MLflow registry
     registry = MLflowRegistry(
-        tracking_uri=tracking_uri,
-        experiment_name=experiment_name
+        tracking_uri=tracking_uri.strip(),
+        experiment_name=experiment_name.strip()
     )
 
 
@@ -193,9 +208,9 @@ if __name__ == "__main__":
         preprocessor_path=args.preprocessor_path,
         best_params_path=args.best_params_path,
         mlflow_run_id=args.mlflow_run_id,
-        tracking_uri=os.environ.get("MLFLOW_TRACKING_URI", "http://mlflow.mlflow:80"),
-        experiment_name=os.environ.get("MLFLOW_EXPERIMENT_NAME", "employee-attrition-v1"),
-        artifact_name=os.environ.get("MLFLOW_MODEL_NAME", "model-name"),
+        tracking_uri=os.environ.get("MLFLOW_TRACKING_URI", "http://mlflow.mlflow:80").strip(),
+        experiment_name=os.environ.get("MLFLOW_EXPERIMENT_NAME", "employee-attrition-v1").strip(),
+        artifact_name=os.environ.get("MLFLOW_MODEL_NAME", "model-name").strip(),
     )
 
 # python -m src.model_development._08_training --feast_repo_path "_feast/feature_repo" --train_path "datasets/data-pipeline" --preprocessor_path "artifacts" --best_params_path "artifacts" --mlflow_run_id "c8c5f3c57ebf4a98bcccec085f0c578f"

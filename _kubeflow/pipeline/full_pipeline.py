@@ -26,18 +26,17 @@ from _kubeflow.components.model_components._09_register import register_model_co
     description="Data → Feast → Training → Evaluation → MLflow Registry"
 )
 def full_pipeline(
-    tracking_uri: str = os.getenv("MLFLOW_TRACKING_INTERNAL_URI"),
-    experiment_name: str = os.getenv("MLFLOW_EXPERIMENT_NAME"),
-    artifact_name: str = os.getenv("MLFLOW_MODEL_NAME"),
-    registry_name: str = os.getenv("MLFLOW_REGISTER_MODEL_NAME"),
+    tracking_uri: str = (os.getenv("MLFLOW_TRACKING_INTERNAL_URI") or "").strip(),
+    experiment_name: str = (os.getenv("MLFLOW_EXPERIMENT_NAME") or "employee-attrition-v1").strip(),
+    artifact_name: str = (os.getenv("MLFLOW_MODEL_NAME") or "model-name").strip(),
+    registry_name: str = (os.getenv("MLFLOW_REGISTER_MODEL_NAME") or "reg-model-name").strip(),
     recall_threshold: float = 0.65,
     feast_repo_path: str = "_feast/feature_repo",
 
-    minio_endpoint: str = os.getenv("MINIO_ENDPOINT"),
-    minio_access_key: str = os.getenv("AWS_ACCESS_KEY_ID"),
-    minio_secret_key: str = os.getenv("AWS_SECRET_ACCESS_KEY"),
+    minio_endpoint: str = (os.getenv("MINIO_ENDPOINT") or "").strip(),
+    minio_access_key: str = (os.getenv("AWS_ACCESS_KEY_ID") or "").strip(),
+    minio_secret_key: str = (os.getenv("AWS_SECRET_ACCESS_KEY") or "").strip(),
 ):
-
     # -------------------------
     # Data Pipeline
     # -------------------------
@@ -102,7 +101,7 @@ def full_pipeline(
         minio_secret_key=minio_secret_key,
     ).after(tuning)
 
-    kubernetes.set_image_pull_policy(train, "Always")
+
 
     # -------------------------
     # Evaluation (directly after training)
@@ -119,7 +118,7 @@ def full_pipeline(
         minio_secret_key=minio_secret_key,
     ).after(train)
 
-    kubernetes.set_image_pull_policy(eval, "Always")
+
 
     # -------------------------
     # Register
@@ -135,5 +134,5 @@ def full_pipeline(
         minio_access_key=minio_access_key,
         minio_secret_key=minio_secret_key,
     ).after(eval)
-
-    kubernetes.set_image_pull_policy(reg, "Always")
+    for task in [ingest, validate, cleaned, feature_engg, preprocess, feast_sync, tuning, train, eval, reg]:
+        kubernetes.set_image_pull_policy(task, "Always")

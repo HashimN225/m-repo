@@ -6,8 +6,7 @@ feature_store_ex.yaml
 *.parquet
 *.csv
 
-/venv/
-venv/
+myvenv
 .env
 
 */__pycache__

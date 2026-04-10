@@ -1,36 +1,16 @@
-# training
-scikit-learn
 numpy
 pandas
-pandera
-matplotlib
-seaborn
-boto3
-python-dotenv
-
-# (optional)
-pyarrow
+scikit-learn
 joblib
-# Feast/pandas can read s3:// URLs:
+pandera
+python-dotenv
 s3fs
-
-# kubeflow
+boto3
+botocore
 kfp
 kfp-kubernetes
 kubernetes
-kubeflow
-kubeflow-training
-
-# mlflow
 mlflow
-
-# API / Serving 
-flask
-flask-cors
-
-# feast-feature-store
-feast
-feast[redis]
-feast[postgres]
-
-torch
+feast[redis,postgres]
+pyarrow
+fsspec

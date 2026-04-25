@@ -1,0 +1,16 @@
+numpy
+pandas
+scikit-learn
+joblib
+pandera
+python-dotenv
+s3fs
+boto3
+botocore
+kfp
+kfp-kubernetes
+kubernetes
+mlflow
+feast[redis,postgres]
+pyarrow
+fsspec

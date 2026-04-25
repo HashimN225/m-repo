@@ -1,0 +1,28 @@
+apiVersion: "serving.kserve.io/v1beta1"
+kind: "InferenceService"
+metadata:
+  name: "sklearn-employee-attrition"
+  namespace: "default"
+spec:
+  predictor:
+    serviceAccountName: kserve-minio-sa
+    sklearn:
+      storageUri: "s3://mlpipeline/mlflow-artifacts/2/models/m-8711b9f5de83458f87679aa3bf688127/artifacts/"
+      # storageUri: "s3://mlpipeline/mlflow-artifacts/<version>/models/<model-id>/artifacts/"
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+      env:
+        - name: MLFLOW_TRACKING_URI
+          value: "http://mlflow.mlflow.svc.cluster.local:80"
+        - name: MLFLOW_S3_ENDPOINT_URL
+          value: "http://minio-service.kubeflow.svc.cluster.local:9000"
+        - name: MLFLOW_S3_IGNORE_TLS
+          value: "true"
+        - name: AWS_DEFAULT_REGION
+          value: "us-east-1"
+        - name: AWS_ACCESS_KEY_ID
+          value: "<minio-access>"
+        - name: AWS_SECRET_ACCESS_KEY
+          value: "<minio123-secret>"

@@ -1,0 +1,4 @@
+[core]
+    remote = ml-dataset
+['remote "ml-dataset"']
+    url = s3://devopscube-data-lake/employee_attrition.csv

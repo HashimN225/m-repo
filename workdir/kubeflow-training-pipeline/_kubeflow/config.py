@@ -1,0 +1,1 @@
+BASE_IMAGE = "hashimn/kubeflow_pipeline:test"

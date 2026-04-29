@@ -5,7 +5,7 @@ import os
 
 # Load env
 BASE_DIR = Path(__file__).resolve().parent
-load_dotenv(dotenv_path=BASE_DIR.parent / ".env")
+load_dotenv(dotenv_path=BASE_DIR.parent.parent / ".env")
 
 # components
 from _kubeflow.components.data_components._01_ingestion import ingestion_component

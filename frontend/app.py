@@ -4,7 +4,6 @@ import os
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from feast import FeatureStore
-from _mlflow.registry import MLflowRegistry
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -15,21 +14,32 @@ MLFLOW_EXPERIMENT_NAME = os.environ.get("MLFLOW_EXPERIMENT_NAME", "employee-attr
 FEAST_REPO_PATH = os.environ.get("FEAST_REPO_PATH", "./_feast/feature_repo")
 
 # Initialize Feast store once at startup
-store = FeatureStore(repo_path=FEAST_REPO_PATH, fs_yaml_file=FEAST_REPO_PATH + '/feature_store.local.yaml')
+store = FeatureStore(repo_path="./_feast/feature_repo")
 feature_service = store.get_feature_service("employee_attrition_features")
-feature_columns = []
+TITLE_TO_SNAKE = {
+    "Years at Company": "years_at_company",
+    "Performance Rating": "performance_rating",
+    "Number of Promotions": "number_of_promotions",
+    "Overtime": "overtime",
+    "Education Level": "education_level",
+    "Number of Dependents": "number_of_dependents",
+    "Job Level": "job_level",
+    "Company Size": "company_size",
+    "Company Tenure": "company_tenure",
+    "Remote Work": "remote_work",
+    "Company Reputation": "company_reputation",
+    "OverallSatisfaction": "overall_satisfaction",
+    "Opportunities": "opportunities",
+    "AnnualIncome": "annual_income",
+    "AgeGroup": "age_group",
+    "RoleStagnationRatio": "role_stagnation_ratio",
+    "TenureGap": "tenure_gap",
+    "EarlyCompanyTenureRisk": "early_company_tenure_risk",
+    "LongTenureLowRoleRisk": "long_tenure_low_role_risk",
+    "Employee ID": "employee_id",
+    "Attrition": "attrition"
+}
 
-for projection in feature_service.feature_view_projections:
-    for field in projection.features:
-        feature_columns.append(field.name)
-
-# remove entity + label
-feature_columns = [
-    f for f in feature_columns
-    if f not in ["employee_id", "attrition"]
-]
-
-print("Model features:", feature_columns)
 
 # features schema data (snake_case to match training pipeline)
 features = [
@@ -75,10 +85,25 @@ def get_features(employeeId):
 
     print('feast-response: ', feast_response)
 
+<<<<<<< Updated upstream:frontend/app.py
     feast_features = {
         k: v[0] for k, v in feast_response.items()
         if k != "employee_id"
     }
+=======
+    # Check if features are found (Feast returns None/null if key not in online store)
+    is_found = any(v[0] is not None for k, v in feast_response.items() if k != "employee_id")
+
+    if not is_found:
+        return jsonify({"error": "Employee not found in feature store"}), 404
+
+    feast_features = {}
+    for k, v in feast_response.items():
+        if k != "employee_id":
+            snake_k = TITLE_TO_SNAKE.get(k, k.lower().replace(" ", "_"))
+            feast_features[snake_k] = v[0]
+
+>>>>>>> Stashed changes:workdir/kubeflow-training-pipeline/frontend/app.py
     return jsonify({
         "employee_id": employeeId,
         "features": feast_features  # optional: for UI display
@@ -101,11 +126,16 @@ def predict():
     data["long_tenure_low_role_risk"] = 1 if (company_tenure > 5 and job_level <= 2) else 0
 
     try:
-        missing = set(feature_columns) - set(data.keys())
+        missing = set(features) - set(data.keys())
         if missing:
             raise ValueError(f"Missing features: {missing}")
 
+<<<<<<< Updated upstream:frontend/app.py
         df_input = pd.Dataframe([data]).reindex(columns=feature_columns)
+=======
+        cols = features + ["employee_id"]
+        df_input = pd.DataFrame([data]).reindex(columns=cols).astype(float)
+>>>>>>> Stashed changes:workdir/kubeflow-training-pipeline/frontend/app.py
         print('df-input: ', df_input.to_dict(orient="records"))
 
 
